@@ -56,6 +56,9 @@ plt.grid(True, linestyle="--", alpha=0.4)
 plt.tight_layout()
 plt.show()
 ```
+The resulting plot is shown below:
+
+![Lagrange linear interpolation for sin(x)](examples/lagrange_linear_interpolation.png)
 
 The corresponding figure is stored in [examples/lagrange_linear_interpolation.png](examples/lagrange_linear_interpolation.png).
 
