@@ -1,5 +1,5 @@
 # Computational-Physics
-An undergraduate course I taught at Hebei Normal University
+An undergraduate course I taught at Hebei Normal University (see:https://llyq17.github.io/Computational-Physics/README.html)
 
 ## 1. Introduction and why interpolation
 Interpolation is a numerical technique used to estimate values of a function at points that are not directly given by the data. In scientific computing and experimental physics, measurements are often available only at discrete sample points, while the underlying behavior is continuous. Interpolation provides a practical way to reconstruct a smooth curve between known values, which is useful for data analysis, visualization, and numerical simulation.
