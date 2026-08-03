@@ -67,12 +67,40 @@ The corresponding figure is stored in [examples/lagrange_linear_interpolation.pn
 Newton interpolation is another polynomial interpolation method. It expresses the interpolation polynomial in a form based on finite differences, making it convenient for adding new data points incrementally. In general, the Newton form can be written as:
 
 $$
-P(x)=a_0+a_1(x-x_0)+a_2(x-x_0)(x-x_1)+\cdots
+P(x)=a_0+a_1(x-x_0)+a_2(x-x_0)(x-x_1)+\cdots+a_n(x-x_0)(x-x_1)\cdots(x-x_{n-1}),
 $$
 
-The coefficients are determined by divided differences, which provide a systematic way to build the polynomial. Newton interpolation is especially useful in practice because it allows the interpolation polynomial to be updated easily when more data become available.
+where the coefficients $a_k$ are determined by divided differences:
+
+$$
+a_0 = f(x_0),
+$$
+
+$$
+a_1 = \frac{f(x_1)-f(x_0)}{x_1-x_0},
+$$
+
+$$
+a_2 = \frac{\frac{f(x_2)-f(x_1)}{x_2-x_1}-\frac{f(x_1)-f(x_0)}{x_1-x_0}}{x_2-x_0},
+$$
+
+and similarly for higher orders. This formulation is especially useful because when a new data point is added, only the new divided differences are needed, so the interpolation polynomial can be updated efficiently.
 
 ## 1.3 Cubic spline interpolation
-Cubic spline interpolation is a piecewise polynomial method in which the interval between neighboring data points is represented by a cubic polynomial. The pieces are connected so that the function values, first derivatives, and second derivatives are continuous at the knots. This produces a smooth curve and avoids the large oscillations that may appear in high-degree polynomial interpolation.
+Cubic spline interpolation is a piecewise polynomial method in which the interval between neighboring data points is represented by a cubic polynomial. On each subinterval $[x_i,x_{i+1}]$, one writes
 
-Because of its smoothness and stability, cubic spline interpolation is widely used in engineering, computer graphics, and scientific data fitting. It is often preferred when a visually smooth and physically reasonable curve is needed.
+$$
+S_i(x)=a_i+b_i(x-x_i)+c_i(x-x_i)^2+d_i(x-x_i)^3,
+$$
+
+where $a_i,b_i,c_i,d_i$ are coefficients determined by the interpolation conditions. The spline is constructed so that the function values, first derivatives, and second derivatives are continuous at the knots:
+
+$$
+S_i(x_i)=f(x_i), \qquad S_{i+1}(x_{i+1})=f(x_{i+1}),
+$$
+
+$$
+S_i'(x_{i+1})=S_{i+1}'(x_{i+1}), \qquad S_i''(x_{i+1})=S_{i+1}''(x_{i+1}).
+$$
+
+This produces a smooth curve and avoids the large oscillations that may appear in high-degree polynomial interpolation. Because of its smoothness and stability, cubic spline interpolation is widely used in engineering, computer graphics, and scientific data fitting. It is often preferred when a visually smooth and physically reasonable curve is needed.
