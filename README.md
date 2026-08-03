@@ -99,9 +99,9 @@ plt.show()
 ```
 The resulting plot is shown below:
 
-![Lagrange linear interpolation for sin(x)](Figures/linear_lagrange.png)
-
-The corresponding figure is stored in [Figures/linear_lagrange.png](Figures/linear_lagrange.png).
+![](Figures/linear_lagrange.png)
+![](Figures/linear_lagrange_error.png)
+The corresponding figure is stored in [](Figures/linear_lagrange.png). and [](Figures/linear_lagrange_error.png)
 
 
 ## 1.2 Newton interpolation
