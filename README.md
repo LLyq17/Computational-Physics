@@ -20,47 +20,88 @@ This method is straightforward and is often used when the number of sample point
 Here is a simple Python example using linear Lagrange interpolation on the function $\sin(x)$.
 
 ```python
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.interpolate import lagrange
 
 
-def lagrange_linear_interpolation(x, x0, x1, y0, y1):
-    l0 = (x - x1) / (x0 - x1)
-    l1 = (x - x0) / (x1 - x0)
-    return y0 * l0 + y1 * l1
+# 如果 Figures 文件夹不存在，则自动创建
+os.makedirs("Figures", exist_ok=True)
 
-x_true = np.linspace(-np.pi, np.pi, 400)
-y_true = np.sin(x_true)
 
-x_nodes = np.array([-np.pi / 2, 0.0, np.pi / 2, np.pi])
+def linear_interpolation(x_nodes, y_nodes, x):
+    """
+    一次拉格朗日插值，即分段线性插值。
+
+    对每个计算点，选取其所在区间的两个相邻节点，
+    再调用 scipy.interpolate.lagrange 构造一次多项式。
+    """
+
+    y_linear = np.empty_like(x, dtype=float)
+    n_nodes = len(x_nodes)
+
+    for k, x_value in enumerate(x):
+        if x_value <= x_nodes[0]:
+            start = 0
+        elif x_value >= x_nodes[-1]:
+            start = n_nodes - 2
+        else:
+            right = np.searchsorted(x_nodes, x_value, side="right")
+            start = right - 1
+
+        polynomial = lagrange(
+            x_nodes[start:start + 2],
+            y_nodes[start:start + 2]
+        )
+        y_linear[k] = polynomial(x_value)
+
+    return y_linear
+
+# 在区间 [0, 2π] 上构造 9 个等距插值节点
+x_nodes = np.linspace(0.0, 2.0 * np.pi, 9)
 y_nodes = np.sin(x_nodes)
 
-x_interp = np.linspace(-np.pi, np.pi, 400)
-y_interp = np.empty_like(x_interp)
+# 构造致密网格，用于绘图和误差计算
+x = np.linspace(0.0, 2.0 * np.pi, 2000)
+y_true = np.sin(x)
 
-for i in range(len(x_nodes) - 1):
-    mask = (x_interp >= x_nodes[i]) & (x_interp <= x_nodes[i + 1])
-    y_interp[mask] = lagrange_linear_interpolation(
-        x_interp[mask], x_nodes[i], x_nodes[i + 1], y_nodes[i], y_nodes[i + 1]
-    )
+# 一次拉格朗日插值
+y_linear = linear_interpolation(x_nodes, y_nodes, x)
+error_linear = np.abs(y_linear - y_true)
 
-plt.figure(figsize=(8, 4.5))
-plt.plot(x_true, y_true, label="sin(x)", color="tab:blue", linewidth=2)
-plt.plot(x_interp, y_interp, label="Linear Lagrange interpolation", color="tab:red", linestyle="--", linewidth=2)
-plt.scatter(x_nodes, y_nodes, color="black", zorder=5, label="Sample points")
+# 一次拉格朗日插值曲线
+plt.figure(figsize=(10, 6))
+plt.scatter(x_nodes, y_nodes, s=60, label="Nine data points", zorder=3)
+plt.plot(x, y_linear, linewidth=2, label="Degree-1 Lagrange interpolation")
+plt.plot(x, y_true, "--", linewidth=2, label="True function: sin(x)")
 plt.xlabel("x")
-plt.ylabel("y")
-plt.title("Lagrange linear interpolation for sin(x)")
+plt.ylabel("f(x)")
+plt.title("Piecewise Linear Lagrange Interpolation")
+plt.grid(alpha=0.25)
 plt.legend()
-plt.grid(True, linestyle="--", alpha=0.4)
 plt.tight_layout()
+plt.savefig("Figures/linear_lagrange.png", dpi=300, bbox_inches="tight")
+plt.show()
+
+# 一次拉格朗日插值误差
+plt.figure(figsize=(10, 6))
+plt.plot(x, error_linear, "--", linewidth=2, label="Absolute error")
+plt.xlabel("x")
+plt.ylabel(r"$|P_1(x)-\sin(x)|$")
+plt.title("Error of Piecewise Linear Lagrange Interpolation")
+plt.grid(alpha=0.25)
+plt.legend()
+plt.tight_layout()
+plt.savefig("Figures/linear_lagrange_error.png", dpi=300, bbox_inches="tight")
 plt.show()
 ```
 The resulting plot is shown below:
 
-![Lagrange linear interpolation for sin(x)](examples/lagrange_linear_interpolation.png)
+![Lagrange linear interpolation for sin(x)](Figures/linear_lagrange.png)
 
-The corresponding figure is stored in [examples/lagrange_linear_interpolation.png](examples/lagrange_linear_interpolation.png).
+The corresponding figure is stored in [Figures/linear_lagrange.png](Figures/linear_lagrange.png).
 
 
 ## 1.2 Newton interpolation
