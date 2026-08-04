@@ -104,6 +104,92 @@ The resulting plot is shown below:
 The corresponding figure is stored in [Figures/linear_lagrange.png](Figures/linear_lagrange.png). and [Figures/linear_lagrange_error.png](Figures/linear_lagrange_error.png)
 
 
+### Code example: quadratic Lagrange interpolation for $\sin(x)$
+Here is a simple Python example using quadratic Lagrange interpolation on the function $\sin(x)$.
+
+```python
+import os
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import lagrange
+
+
+# 如果 Figures 文件夹不存在，则自动创建
+os.makedirs("Figures", exist_ok=True)
+
+
+def quadratic_interpolation(x_nodes, y_nodes, x):
+    """
+    二次拉格朗日插值，即局部抛物线插值。
+
+    对每个计算点，选取附近的三个连续节点，
+    再调用 scipy.interpolate.lagrange 构造二次多项式。
+    """
+
+    y_quadratic = np.empty_like(x, dtype=float)
+    n_nodes = len(x_nodes)
+
+    for k, x_value in enumerate(x):
+        nearest = int(np.argmin(np.abs(x_nodes - x_value)))
+        start = nearest - 1
+        start = max(start, 0)
+        start = min(start, n_nodes - 3)
+
+        polynomial = lagrange(
+            x_nodes[start:start + 3],
+            y_nodes[start:start + 3]
+        )
+        y_quadratic[k] = polynomial(x_value)
+
+    return y_quadratic
+
+# 在区间 [0, 2π] 上构造 9 个等距插值节点
+x_nodes = np.linspace(0.0, 2.0 * np.pi, 9)
+y_nodes = np.sin(x_nodes)
+
+# 构造致密网格，用于绘图和误差计算
+x = np.linspace(0.0, 2.0 * np.pi, 2000)
+y_true = np.sin(x)
+
+# 二次拉格朗日插值
+y_quadratic = quadratic_interpolation(x_nodes, y_nodes, x)
+error_quadratic = np.abs(y_quadratic - y_true)
+
+# 二次拉格朗日插值曲线
+plt.figure(figsize=(10, 6))
+plt.scatter(x_nodes, y_nodes, s=60, label="Nine data points", zorder=3)
+plt.plot(x, y_quadratic, linewidth=2, label="Degree-2 Lagrange interpolation")
+plt.plot(x, y_true, "--", linewidth=2, label="True function: sin(x)")
+plt.xlabel("x")
+plt.ylabel("f(x)")
+plt.title("Local Quadratic Lagrange Interpolation")
+plt.grid(alpha=0.25)
+plt.legend()
+plt.tight_layout()
+plt.savefig("Figures/quadratic_lagrange.png", dpi=300, bbox_inches="tight")
+plt.show()
+
+# 二次拉格朗日插值误差
+plt.figure(figsize=(10, 6))
+plt.plot(x, error_quadratic, "--", linewidth=2, label="Absolute error")
+plt.xlabel("x")
+plt.ylabel(r"$|P_2(x)-\sin(x)|$")
+plt.title("Error of Local Quadratic Lagrange Interpolation")
+plt.grid(alpha=0.25)
+plt.legend()
+plt.tight_layout()
+plt.savefig("Figures/quadratic_lagrange_error.png", dpi=300, bbox_inches="tight")
+plt.show()
+```
+The resulting plot is shown below:
+
+![](Figures/quadratic_lagrange.png)
+![](Figures/quadratic_lagrange_error.png)
+The corresponding figure is stored in [Figures/linear_lagrange.png](Figures/quadratic_lagrange.png). and [Figures/linear_lagrange_error.png](Figures/quadratic_lagrange_error.png)
+
+
+
 ## 1.2 Newton interpolation
 Newton interpolation is another polynomial interpolation method. It expresses the interpolation polynomial in a form based on finite differences, making it convenient for adding new data points incrementally. In general, the Newton form can be written as:
 
