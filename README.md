@@ -145,3 +145,20 @@ S_i'(x_{i+1})=S_{i+1}'(x_{i+1}), \qquad S_i''(x_{i+1})=S_{i+1}''(x_{i+1}).
 $$
 
 This produces a smooth curve and avoids the large oscillations that may appear in high-degree polynomial interpolation. Because of its smoothness and stability, cubic spline interpolation is widely used in engineering, computer graphics, and scientific data fitting. It is often preferred when a visually smooth and physically reasonable curve is needed.
+
+
+## 1.4 Runge's phenomenon
+
+A classic warning about high-degree polynomial interpolation is Runge's phenomenon. If we interpolate the function
+
+$$
+f(x)=\frac{1}{1+x^2},\qquad x\in[-5,5],
+$$
+
+using many equally spaced nodes, the interpolating polynomial may oscillate strongly near the endpoints. This shows that increasing the degree of the polynomial does not always improve the approximation.
+
+The notebook [Code/runge_interpolation_comparison.ipynb](Code/runge_interpolation_comparison.ipynb) compares several approaches:
+
+The resulting comparison figure is stored in [Figures/Runge_comparison.png](Figures/Runge_comparison.png).
+
+This example illustrates why piecewise and spline-based methods are often more stable than one single high-degree polynomial.
