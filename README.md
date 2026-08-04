@@ -248,7 +248,14 @@ The resulting plot is shown below:
 ![](Figures/degree8_lagrange_error.png)
 The corresponding figure is stored in [Figures/degree8_lagrange.png](Figures/degree8_lagrange.png). and [Figures/degree8_lagrange_error.png](Figures/degree8_lagrange_error.png)
 
+The notebook [Code/lagrange_interpolation.ipynb](Code/lagrange_interpolation.ipynb) also compares several approaches,
 
+The resulting plot is shown below:
+
+![](Figures/lagrange_comparison.png)
+![](Figures/lagrange_error_comparison.png)
+
+The resulting comparison figure is stored in [Figures/lagrange_comparison.png](Figures/lagrange_comparison.png). and [Figures/lagrange_error_comparison.png](Figures/lagrange_error_comparison.png).
 
 ## 1.2 Newton interpolation
 Newton interpolation is another polynomial interpolation method. It expresses the interpolation polynomial in a form based on finite differences, making it convenient for adding new data points incrementally. In general, the Newton form can be written as:
