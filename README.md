@@ -281,7 +281,7 @@ $$
 and similarly for higher orders. This formulation is especially useful because when a new data point is added, only the new divided differences are needed, so the interpolation polynomial can be updated efficiently.
 
 ### Code example: Newton interpolation for $\sin(x)$
-Here is a simple Python example using quadratic Lagrange interpolation on the function $\sin(x)$.
+Here is a simple Python example using Newton interpolation on the function $\sin(x)$.
 
 ```python
 import os
@@ -471,7 +471,7 @@ plt.show()
 ```
 The resulting plot is shown below:
 
-![](Figures/quadratic_lagrange.png)
+![](Figures/newton_interpolation.png)
 ![](Figures/newton_interpolation.png)
 The corresponding figure is stored in [Figures/newton_interpolation.png](Figures/newton_interpolation.png). and [Figures/newton_interpolation_error.png](Figures/newton_interpolation_error.png)
 
@@ -494,6 +494,143 @@ S_i'(x_{i+1})=S_{i+1}'(x_{i+1}), \qquad S_i''(x_{i+1})=S_{i+1}''(x_{i+1}).
 $$
 
 This produces a smooth curve and avoids the large oscillations that may appear in high-degree polynomial interpolation. Because of its smoothness and stability, cubic spline interpolation is widely used in engineering, computer graphics, and scientific data fitting. It is often preferred when a visually smooth and physically reasonable curve is needed.
+
+### Code example: Cubic spline interpolation for $\sin(x)$
+Here is a simple Python example using Cubic spline interpolation on the function $\sin(x)$.
+
+```python
+import os
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import CubicSpline
+
+
+# 如果 Figures 文件夹不存在，则自动创建
+os.makedirs("Figures", exist_ok=True)
+
+# 在区间 [0, 2π] 上构造 9 个等距插值节点
+x_nodes = np.linspace(
+    0.0,
+    2.0 * np.pi,
+    9
+)
+
+# 节点对应的函数值
+y_nodes = np.sin(x_nodes)
+
+
+# 构造致密网格，用于绘图和误差计算
+x = np.linspace(
+    0.0,
+    2.0 * np.pi,
+    2000
+)
+
+# 原函数真值
+y_true = np.sin(x)
+
+
+# 构造自然三次样条插值函数
+# bc_type="natural" 表示左右端点的二阶导数为 0
+spline = CubicSpline(
+    x_nodes,
+    y_nodes,
+    bc_type="natural"
+)
+
+# 计算样条插值结果
+y_spline = spline(x)
+
+# 计算绝对误差
+error_spline = np.abs(
+    y_spline - y_true
+)
+
+print(
+    "三次样条插值最大绝对误差：",
+    np.max(error_spline)
+)
+
+# ==========================================================
+# 三次样条插值曲线
+# ==========================================================
+
+plt.figure(figsize=(10, 6))
+
+plt.scatter(
+    x_nodes,
+    y_nodes,
+    s=60,
+    label="Nine data points",
+    zorder=3
+)
+
+plt.plot(
+    x,
+    y_spline,
+    linewidth=2,
+    label="Natural cubic spline interpolation"
+)
+
+plt.plot(
+    x,
+    y_true,
+    "--",
+    linewidth=2,
+    label="True function: sin(x)"
+)
+
+plt.xlabel("x")
+plt.ylabel("f(x)")
+plt.title("Natural Cubic Spline Interpolation of sin(x)")
+plt.grid(alpha=0.25)
+plt.legend()
+plt.tight_layout()
+
+plt.savefig(
+    "Figures/cubic_spline_interpolation.png",
+    dpi=300,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+
+# ==========================================================
+# 三次样条插值误差
+# ==========================================================
+
+plt.figure(figsize=(10, 6))
+
+plt.plot(
+    x,
+    error_spline,
+    "--",
+    linewidth=2,
+    label="Absolute error"
+)
+
+plt.xlabel("x")
+plt.ylabel(r"$|S(x)-\sin(x)|$")
+plt.title("Absolute Error of Natural Cubic Spline Interpolation")
+plt.grid(alpha=0.25)
+plt.legend()
+plt.tight_layout()
+
+plt.savefig(
+    "Figures/cubic_spline_interpolation_error.png",
+    dpi=300,
+    bbox_inches="tight"
+)
+
+plt.show()
+```
+The resulting plot is shown below:
+
+![](Figures/cubic_spline_interpolation.png)
+![](Figures/cubic_spline_interpolation_error.png)
+The corresponding figure is stored in [Figures/cubic_spline_interpolation.png](Figures/cubic_spline_interpolation.png). and [Figures/cubic_spline_interpolation_error.png](Figures/cubic_spline_interpolation_error.png)
 
 
 ## 1.4 Runge's phenomenon
