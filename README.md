@@ -280,6 +280,202 @@ $$
 
 and similarly for higher orders. This formulation is especially useful because when a new data point is added, only the new divided differences are needed, so the interpolation polynomial can be updated efficiently.
 
+### Code example: Newton interpolation for $\sin(x)$
+Here is a simple Python example using quadratic Lagrange interpolation on the function $\sin(x)$.
+
+```python
+import os
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+# 如果 Figures 文件夹不存在，则自动创建
+os.makedirs("Figures", exist_ok=True)
+
+
+def divided_difference(x_nodes, y_nodes):
+    """
+    计算牛顿插值的差商表和差商系数。
+
+    返回：
+    table       完整差商表
+    coefficients  牛顿插值多项式的系数
+    """
+
+    x_nodes = np.asarray(x_nodes, dtype=float)
+    y_nodes = np.asarray(y_nodes, dtype=float)
+
+    n = len(x_nodes)
+
+    # 差商表第一列为函数值
+    table = np.zeros((n, n), dtype=float)
+    table[:, 0] = y_nodes
+
+    # 逐阶计算差商
+    for j in range(1, n):
+        for i in range(n - j):
+            table[i, j] = (
+                table[i + 1, j - 1] - table[i, j - 1]
+            ) / (
+                x_nodes[i + j] - x_nodes[i]
+            )
+
+    # 牛顿插值系数位于差商表第一行
+    coefficients = table[0, :].copy()
+
+    return table, coefficients
+
+
+def newton_interpolation(x_nodes, coefficients, x):
+    """
+    根据牛顿差商系数计算插值多项式。
+
+    采用嵌套乘法形式计算，避免直接展开高次多项式。
+    """
+
+    x_nodes = np.asarray(x_nodes, dtype=float)
+    coefficients = np.asarray(coefficients, dtype=float)
+    x = np.asarray(x, dtype=float)
+
+    # 从最高阶系数开始进行嵌套计算
+    y = np.full_like(x, coefficients[-1], dtype=float)
+
+    for k in range(len(coefficients) - 2, -1, -1):
+        y = coefficients[k] + (x - x_nodes[k]) * y
+
+    return y
+
+
+# 在区间 [0, 2π] 上构造 9 个等距插值节点
+x_nodes = np.linspace(
+    0.0,
+    2.0 * np.pi,
+    9
+)
+
+# 节点对应的函数值
+y_nodes = np.sin(x_nodes)
+
+
+# 构造致密网格，用于绘图和误差计算
+x = np.linspace(
+    0.0,
+    2.0 * np.pi,
+    2000
+)
+
+# 原函数真值
+y_true = np.sin(x)
+
+
+# 计算差商表和牛顿插值系数
+difference_table, coefficients = divided_difference(
+    x_nodes,
+    y_nodes
+)
+
+# 计算牛顿插值结果
+y_newton = newton_interpolation(
+    x_nodes,
+    coefficients,
+    x
+)
+
+# 计算绝对误差
+error_newton = np.abs(
+    y_newton - y_true
+)
+
+
+print("牛顿插值系数：")
+for i, value in enumerate(coefficients):
+    print(f"a[{i}] = {value:.12e}")
+
+print()
+print(
+    "牛顿插值最大绝对误差：",
+    np.max(error_newton)
+)
+
+
+plt.figure(figsize=(10, 6))
+
+plt.scatter(
+    x_nodes,
+    y_nodes,
+    s=60,
+    label="Nine data points",
+    zorder=3
+)
+
+plt.plot(
+    x,
+    y_newton,
+    linewidth=2,
+    label="Newton interpolation"
+)
+
+plt.plot(
+    x,
+    y_true,
+    "--",
+    linewidth=2,
+    label="True function: sin(x)"
+)
+
+plt.xlabel("x")
+plt.ylabel("f(x)")
+plt.title("Newton Interpolation of sin(x)")
+plt.grid(alpha=0.25)
+plt.legend()
+plt.tight_layout()
+
+plt.savefig(
+    "Figures/newton_interpolation.png",
+    dpi=300,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+
+# ==========================================================
+# 牛顿插值误差
+# ==========================================================
+
+plt.figure(figsize=(10, 6))
+
+plt.plot(
+    x,
+    error_newton,
+    "--",
+    linewidth=2,
+    label="Absolute error"
+)
+
+plt.xlabel("x")
+plt.ylabel(r"$|P_8(x)-\sin(x)|$")
+plt.title("Absolute Error of Newton Interpolation")
+plt.grid(alpha=0.25)
+plt.legend()
+plt.tight_layout()
+
+plt.savefig(
+    "Figures/newton_interpolation_error.png",
+    dpi=300,
+    bbox_inches="tight"
+)
+
+plt.show()
+```
+The resulting plot is shown below:
+
+![](Figures/quadratic_lagrange.png)
+![](Figures/newton_interpolation.png)
+The corresponding figure is stored in [Figures/newton_interpolation.png](Figures/newton_interpolation.png). and [Figures/newton_interpolation_error.png](Figures/newton_interpolation_error.png)
+
+
 ## 1.3 Cubic spline interpolation
 Cubic spline interpolation is a piecewise polynomial method in which the interval between neighboring data points is represented by a cubic polynomial. On each subinterval $[x_i,x_{i+1}]$, one writes
 
