@@ -3,94 +3,227 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Computational Physics</title>
+  <title>Computational Physics Notes</title>
   <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
-    pre { background: #f6f8fa; padding: 1rem; overflow-x: auto; }
-    code { background: #f6f8fa; padding: 0.2rem 0.4rem; }
-    img { max-width: 100%; height: auto; display: block; margin: 1rem 0; }
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-dark: #1d4ed8;
+      --sidebar: #111827;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .page {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      background: var(--sidebar);
+      color: #f9fafb;
+      padding: 24px 20px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar h2 {
+      font-size: 1.05rem;
+      margin-bottom: 1rem;
+      color: #dbeafe;
+    }
+
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { margin: 0.35rem 0; }
+    .sidebar a { color: #e5e7eb; display: block; padding: 0.35rem 0.5rem; border-radius: 6px; }
+    .sidebar a:hover { background: rgba(255,255,255,0.12); text-decoration: none; }
+
+    .content {
+      flex: 1;
+      padding: 32px 28px 60px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 28px;
+      box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+      margin-bottom: 24px;
+    }
+
+    h1, h2, h3 {
+      color: #111827;
+      line-height: 1.25;
+    }
+
+    h1 { font-size: 2rem; margin-top: 0; }
+    h2 { font-size: 1.45rem; margin-top: 2rem; }
+    h3 { font-size: 1.1rem; margin-top: 1.5rem; }
+
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 1rem;
+      overflow-x: auto;
+      border-radius: 8px;
+    }
+
+    code {
+      background: #e5e7eb;
+      padding: 0.15rem 0.35rem;
+      border-radius: 4px;
+      font-family: Consolas, Monaco, monospace;
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: 1rem 0;
+      background: #fff;
+    }
+
+    .figure-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin: 1rem 0;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-top: 0.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .page { display: block; }
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+      }
+      .content { padding: 20px 16px 40px; }
+    }
   </style>
 </head>
 <body>
-<h1>Computational-Physics</h1>
-<p>An undergraduate course I taught at Hebei Normal University</p>
-<h2>1. Introduction and why interpolation</h2>
-<p>Interpolation is a numerical technique used to estimate values of a function at points that are not directly given by the data. In scientific computing and experimental physics, measurements are often available only at discrete sample points, while the underlying behavior is continuous. Interpolation provides a practical way to reconstruct a smooth curve between known values, which is useful for data analysis, visualization, and numerical simulation.</p>
-<p>Interpolation is especially important because many physical quantities are observed only at selected positions or times. Instead of treating the data as a set of isolated points, we can use interpolation to obtain a reasonable approximation of the function between those points. Compared with direct measurement, interpolation is often more efficient and helps us understand the trend of the data.</p>
-<h2>1.1 Lagrange interpolation</h2>
-<p>Lagrange interpolation constructs a polynomial that passes through all given data points. For points $(x_0,y_0), (x_1,y_1), \dots, (x_n,y_n)$, the interpolation polynomial is written as a sum of basis polynomials:</p>
-<p>$$
-P(x)=\sum_{i=0}^{n} y_i \prod_{j\ne i}\frac{x-x_j}{x_i-x_j}
-$$</p>
-<p>This method is straightforward and is often used when the number of sample points is small. Its advantage is that the polynomial is guaranteed to pass through every given point. However, for large numbers of data points, the resulting polynomial may become unstable and oscillatory.</p>
-<h3>1.1.1 Code example: linear Lagrange interpolation for $\sin(x)$</h3>
-<p>Here is a simple Python example using linear Lagrange interpolation on the function $\sin(x)$.</p>
-<pre><code class="language-python">import numpy as np
-import matplotlib.pyplot as plt
+  <div class="page">
+    <aside class="sidebar">
+      <h2>Contents</h2>
+      <ul>
+        <li><a href="#intro">Introduction</a></li>
+        <li><a href="#lagrange">Lagrange interpolation</a></li>
+        <li><a href="#newton">Newton interpolation</a></li>
+        <li><a href="#spline">Cubic spline interpolation</a></li>
+        <li><a href="#runge">Runge's phenomenon</a></li>
+        <li><a href="index.html">Back to home</a></li>
+      </ul>
+    </aside>
 
+    <main class="content">
+      <div class="card">
+        <h1>Computational-Physics</h1>
+        <p>An undergraduate course taught at Hebei Normal University.</p>
+        <p>This page is the HTML version of the course notes and is intended to be viewed through GitHub Pages at <a href="https://llyq17.github.io/Computational-Physics/README.html">https://llyq17.github.io/Computational-Physics/README.html</a>.</p>
+      </div>
 
-def lagrange_linear_interpolation(x, x0, x1, y0, y1):
-    l0 = (x - x1) / (x0 - x1)
-    l1 = (x - x0) / (x1 - x0)
-    return y0 * l0 + y1 * l1
+      <div class="card" id="intro">
+        <h2>1. Introduction and why interpolation</h2>
+        <p>Interpolation is a numerical technique used to estimate values of a function at points that are not directly available from the data. In experimental physics and scientific computing, measurements are often available only at discrete sample points, while the underlying behavior is continuous. Interpolation helps reconstruct a smooth curve between known values for analysis, visualization, and simulation.</p>
+        <p>It is especially useful when many physical quantities are observed only at selected positions or times. Instead of treating the data as isolated points, interpolation provides a reasonable approximation of the function between them.</p>
+      </div>
 
-x_true = np.linspace(-np.pi, np.pi, 400)
-y_true = np.sin(x_true)
+      <div class="card" id="lagrange">
+        <h2>1.1 Lagrange interpolation</h2>
+        <p>Lagrange interpolation constructs a polynomial that passes through all available data points. For points <em>(x0, y0), (x1, y1), …, (xn, yn)</em>, the interpolation polynomial can be written as</p>
+        <p><em>P(x) = Σ yi ∏(x - xj)/(xi - xj)</em></p>
+        <p>This method is simple and exact at the given nodes, but for many points the resulting polynomial can become unstable and oscillatory.</p>
 
-x_nodes = np.array([-np.pi / 2, 0.0, np.pi / 2, np.pi])
-y_nodes = np.sin(x_nodes)
+        <h3>Linear Lagrange interpolation</h3>
+        <p>A piecewise linear interpolation example for <em>sin(x)</em> is shown below.</p>
+        <div class="figure-grid">
+          <img src="Figures/linear_lagrange.png" alt="Linear Lagrange interpolation curve">
+          <img src="Figures/linear_lagrange_error.png" alt="Linear Lagrange interpolation error">
+        </div>
 
-x_interp = np.linspace(-np.pi, np.pi, 400)
-y_interp = np.empty_like(x_interp)
+        <h3>Quadratic Lagrange interpolation</h3>
+        <div class="figure-grid">
+          <img src="Figures/quadratic_lagrange.png" alt="Quadratic Lagrange interpolation curve">
+          <img src="Figures/quadratic_lagrange_error.png" alt="Quadratic Lagrange interpolation error">
+        </div>
 
-for i in range(len(x_nodes) - 1):
-    mask = (x_interp &gt;= x_nodes[i]) &amp; (x_interp &lt;= x_nodes[i + 1])
-    y_interp[mask] = lagrange_linear_interpolation(
-        x_interp[mask], x_nodes[i], x_nodes[i + 1], y_nodes[i], y_nodes[i + 1]
-    )
+        <h3>Global degree-8 Lagrange interpolation</h3>
+        <div class="figure-grid">
+          <img src="Figures/degree8_lagrange.png" alt="Degree-8 global Lagrange interpolation">
+          <img src="Figures/degree8_lagrange_error.png" alt="Degree-8 interpolation error">
+        </div>
 
-plt.figure(figsize=(8, 4.5))
-plt.plot(x_true, y_true, label=&quot;sin(x)&quot;, color=&quot;tab:blue&quot;, linewidth=2)
-plt.plot(x_interp, y_interp, label=&quot;Linear Lagrange interpolation&quot;, color=&quot;tab:red&quot;, linestyle=&quot;--&quot;, linewidth=2)
-plt.scatter(x_nodes, y_nodes, color=&quot;black&quot;, zorder=5, label=&quot;Sample points&quot;)
-plt.xlabel(&quot;x&quot;)
-plt.ylabel(&quot;y&quot;)
-plt.title(&quot;Lagrange linear interpolation for sin(x)&quot;)
-plt.legend()
-plt.grid(True, linestyle=&quot;--&quot;, alpha=0.4)
-plt.tight_layout()
-plt.show()
-</code></pre>
-<p>The resulting plot is shown below:</p>
-<p><img alt="Lagrange linear interpolation for sin(x)" src="examples/lagrange_linear_interpolation.png" /></p>
-<h2>1.2 Newton interpolation</h2>
-<p>Newton interpolation is another polynomial interpolation method. It expresses the interpolation polynomial in a form based on finite differences, making it convenient for adding new data points incrementally. In general, the Newton form can be written as:</p>
-<p>$$
-P(x)=a_0+a_1(x-x_0)+a_2(x-x_0)(x-x_1)+\cdots+a_n(x-x_0)(x-x_1)\cdots(x-x_{n-1}),
-$$</p>
-<p>where the coefficients $a_k$ are determined by divided differences:</p>
-<p>$$
-a_0 = f(x_0),
-$$</p>
-<p>$$
-a_1 = \frac{f(x_1)-f(x_0)}{x_1-x_0},
-$$</p>
-<p>$$
-a_2 = \frac{\frac{f(x_2)-f(x_1)}{x_2-x_1}-\frac{f(x_1)-f(x_0)}{x_1-x_0}}{x_2-x_0},
-$$</p>
-<p>and similarly for higher orders. This formulation is especially useful because when a new data point is added, only the new divided differences are needed, so the interpolation polynomial can be updated efficiently.</p>
-<h2>1.3 Cubic spline interpolation</h2>
-<p>Cubic spline interpolation is a piecewise polynomial method in which the interval between neighboring data points is represented by a cubic polynomial. On each subinterval $[x_i,x_{i+1}]$, one writes</p>
-<p>$$
-S_i(x)=a_i+b_i(x-x_i)+c_i(x-x_i)^2+d_i(x-x_i)^3,
-$$</p>
-<p>where $a_i,b_i,c_i,d_i$ are coefficients determined by the interpolation conditions. The spline is constructed so that the function values, first derivatives, and second derivatives are continuous at the knots:</p>
-<p>$$
-S_i(x_i)=f(x_i), \qquad S_{i+1}(x_{i+1})=f(x_{i+1}),
-$$</p>
-<p>$$
-S_i'(x_{i+1})=S_{i+1}'(x_{i+1}), \qquad S_i''(x_{i+1})=S_{i+1}''(x_{i+1}).
-$$</p>
-<p>This produces a smooth curve and avoids the large oscillations that may appear in high-degree polynomial interpolation. Because of its smoothness and stability, cubic spline interpolation is widely used in engineering, computer graphics, and scientific data fitting. It is often preferred when a visually smooth and physically reasonable curve is needed.</p>
+        <p class="note">The notebook <a href="Code/lagrange_interpolation.ipynb">Code/lagrange_interpolation.ipynb</a> compares several approaches.</p>
+        <div class="figure-grid">
+          <img src="Figures/lagrange_comparison.png" alt="Comparison of Lagrange interpolation methods">
+          <img src="Figures/lagrange_error_comparison.png" alt="Error comparison of Lagrange interpolation methods">
+        </div>
+      </div>
+
+      <div class="card" id="newton">
+        <h2>1.2 Newton interpolation</h2>
+        <p>Newton interpolation expresses the polynomial in a basis of nested factors such as</p>
+        <p><em>P(x) = a0 + a1(x - x0) + a2(x - x0)(x - x1) + ...</em></p>
+        <p>The coefficients are obtained from divided differences, which makes the method convenient when new data points are added incrementally.</p>
+        <div class="figure-grid">
+          <img src="Figures/newton_interpolation.png" alt="Newton interpolation curve">
+          <img src="Figures/newton_interpolation_error.png" alt="Newton interpolation error">
+        </div>
+      </div>
+
+      <div class="card" id="spline">
+        <h2>1.3 Cubic spline interpolation</h2>
+        <p>Cubic spline interpolation uses piecewise cubic polynomials between neighboring data points. It enforces continuity of the function and its first and second derivatives at the knots, giving a smooth and stable curve.</p>
+        <p>This is often preferred over a single high-degree polynomial when the goal is a visually smooth and physically reasonable approximation.</p>
+        <div class="figure-grid">
+          <img src="Figures/cubic_spline_interpolation.png" alt="Cubic spline interpolation curve">
+          <img src="Figures/cubic_spline_interpolation_error.png" alt="Cubic spline interpolation error">
+        </div>
+      </div>
+
+      <div class="card" id="runge">
+        <h2>1.4 Runge's phenomenon</h2>
+        <p>Runge's phenomenon shows that increasing the degree of an interpolating polynomial can lead to large oscillations near the boundaries when equally spaced nodes are used. A classical example is the function <em>f(x) = 1 / (1 + x^2)</em> on <em>[-5, 5]</em>.</p>
+        <p>The notebook <a href="Code/runge_interpolation_comparison.ipynb">Code/runge_interpolation_comparison.ipynb</a> compares several approaches and illustrates why piecewise and spline-based methods are often more stable.</p>
+        <img src="Figures/Runge_comparison.png" alt="Runge phenomenon comparison">
+      </div>
+    </main>
+  </div>
 </body>
 </html>
+
