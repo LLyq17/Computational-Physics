@@ -203,11 +203,18 @@
     <aside class="sidebar">
       <h2>Contents</h2>
       <ul>
-        <li><a href="#intro">Introduction</a></li>
-        <li><a href="#lagrange">Lagrange interpolation</a></li>
-        <li><a href="#newton">Newton interpolation</a></li>
-        <li><a href="#spline">Cubic spline interpolation</a></li>
-        <li><a href="#runge">Runge's phenomenon</a></li>
+        <li><a href="#intro">1. Introduction</a></li>
+        <li><a href="#why-interpolation">2. Why interpolation</a></li>
+        <li><a href="#lagrange">2.1 Lagrange interpolation</a></li>
+        <li><a href="#newton">2.2 Newton interpolation</a></li>
+        <li><a href="#spline">2.3 Cubic spline interpolation</a></li>
+        <li><a href="#runge">2.4 Runge's phenomenon</a></li>
+        <li><a href="#curve-fitting">3. Why curve fitting</a></li>
+        <li><a href="#least-squares">3.1 Least squares</a></li>
+        <li><a href="#maximum-likelihood">3.2 Maximum likelihood</a></li>
+        <li><a href="#fft">4. Why FFT</a></li>
+        <li><a href="#dft">4.1 Discrete Fourier transform (DFT)</a></li>
+        <li><a href="#fft-2">4.2 Fast Fourier Transform (FFT)</a></li>
         <li><a href="index.html">Back to home</a></li>
       </ul>
     </aside>
@@ -215,19 +222,24 @@
     <main class="content">
       <div class="card">
         <h1>Computational-Physics</h1>
-        <p>An undergraduate course taught at Hebei Normal University.</p>
-        <p>This page is the HTML version of the course notes and is intended to be viewed through GitHub Pages at <a href="https://llyq17.github.io/Computational-Physics/README.html">https://llyq17.github.io/Computational-Physics/README.html</a>.</p>
+        <p>An undergraduate course I taught at Hebei Normal University (see: <a href="https://llyq17.github.io/Computational-Physics/README.html">https://llyq17.github.io/Computational-Physics/README.html</a>)</p>
       </div>
 
       <div class="card" id="intro">
-        <h2>1. Introduction and why interpolation</h2>
-        <p>Interpolation is a numerical technique used to estimate values of a function at points that are not directly given by the data. In scientific computing and experimental physics, measurements are often available only at discrete sample points, while the underlying behavior is continuous. Interpolation provides a practical way to reconstruct a smooth curve between known values, which is useful for data analysis, visualization, and numerical simulation.</p>
+        <h2>1. Introduction</h2>
+        <p>Computational physics is the use of numerical methods, algorithms, and scientific computing to model, simulate, analyze, and interpret physical systems. It bridges mathematics, computer science, and physics, allowing us to study problems that are difficult or impossible to solve analytically. In practical research, computational physics is used to simulate motion, analyze experimental data, solve differential equations, and extract useful information from large datasets.</p>
+        <p>This lecture focuses on three core topics: interpolation, curve fitting, and Fourier analysis. They are fundamental tools in data analysis, numerical modeling, and scientific computing, and they appear repeatedly in physics experiments, signal processing, and simulations.</p>
+      </div>
+
+      <div class="card" id="why-interpolation">
+        <h2>2. Why interpolation</h2>
+        <p>Interpolation is a numerical technique used to estimate the value of a function at points that are not directly given by the data. In scientific computing and experimental physics, measurements are often available only at discrete sample points, while the underlying behavior is continuous. Interpolation provides a practical way to reconstruct a smooth curve between known values, which is useful for data analysis, visualization, and numerical simulation.</p>
         <p>Interpolation is especially important because many physical quantities are observed only at selected positions or times. Instead of treating the data as a set of isolated points, we can use interpolation to obtain a reasonable approximation of the function between those points. Compared with direct measurement, interpolation is often more efficient and helps us understand the trend of the data.</p>
       </div>
 
       <div class="card" id="lagrange">
-        <h2>1.1 Lagrange interpolation</h2>
-        <p>Lagrange interpolation constructs a polynomial that passes through all given data points. For points <em>(x0, y0), (x1, y1), …, (xn, yn)</em>, the interpolation polynomial is written as a sum of basis polynomials:</p>
+        <h2>2.1 Lagrange interpolation</h2>
+        <p>Lagrange interpolation constructs a polynomial that passes through all given data points. For points $(x_0,y_0), (x_1,y_1), \dots, (x_n,y_n)$, the interpolation polynomial is written as a sum of basis polynomials:</p>
         <div class="equation">
           $$
           P(x)=\sum_{i=0}^{n} y_i \prod_{j\ne i}\frac{x-x_j}{x_i-x_j}
@@ -235,6 +247,8 @@
         </div>
         <p>This method is straightforward and is often used when the number of sample points is small. Its advantage is that the polynomial is guaranteed to pass through every given point. However, for large numbers of data points, the resulting polynomial may become unstable and oscillatory.</p>
 
+        <h3>Code example: linear Lagrange interpolation for $\sin(x)$</h3>
+        <p>Here is a simple Python example using linear Lagrange interpolation on the function $\sin(x)$.</p>
         <div class="code-block">
           <button class="code-toggle" type="button" onclick="this.nextElementSibling.classList.toggle('open')">Show code</button>
           <div class="code-panel">
@@ -317,26 +331,165 @@ plt.show()</code></pre>
           </div>
         </div>
 
-        <h3>Linear Lagrange interpolation</h3>
-        <p>A piecewise linear interpolation example for <em>sin(x)</em> is shown below.</p>
+        <p>The resulting plot is shown below:</p>
         <div class="figure-grid">
           <img src="Figures/linear_lagrange.png" alt="Linear Lagrange interpolation curve">
           <img src="Figures/linear_lagrange_error.png" alt="Linear Lagrange interpolation error">
         </div>
+        <p>The corresponding figure is stored in <a href="Figures/linear_lagrange.png">Figures/linear_lagrange.png</a> and <a href="Figures/linear_lagrange_error.png">Figures/linear_lagrange_error.png</a>.</p>
 
-        <h3>Quadratic Lagrange interpolation</h3>
+        <h3>Code example: quadratic Lagrange interpolation for $\sin(x)$</h3>
+        <p>Here is a simple Python example using quadratic Lagrange interpolation on the function $\sin(x)$.</p>
+        <div class="code-block">
+          <button class="code-toggle" type="button" onclick="this.nextElementSibling.classList.toggle('open')">Show code</button>
+          <div class="code-panel">
+            <pre><code>import os
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import lagrange
+
+
+# 如果 Figures 文件夹不存在，则自动创建
+os.makedirs("Figures", exist_ok=True)
+
+
+def quadratic_interpolation(x_nodes, y_nodes, x):
+    """
+    二次拉格朗日插值，即局部抛物线插值。
+
+    对每个计算点，选取附近的三个连续节点，
+    再调用 scipy.interpolate.lagrange 构造二次多项式。
+    """
+
+    y_quadratic = np.empty_like(x, dtype=float)
+    n_nodes = len(x_nodes)
+
+    for k, x_value in enumerate(x):
+        nearest = int(np.argmin(np.abs(x_nodes - x_value)))
+        start = nearest - 1
+        start = max(start, 0)
+        start = min(start, n_nodes - 3)
+
+        polynomial = lagrange(
+            x_nodes[start:start + 3],
+            y_nodes[start:start + 3]
+        )
+        y_quadratic[k] = polynomial(x_value)
+
+    return y_quadratic
+
+# 在区间 [0, 2π] 上构造 9 个等距插值节点
+x_nodes = np.linspace(0.0, 2.0 * np.pi, 9)
+y_nodes = np.sin(x_nodes)
+
+# 构造致密网格，用于绘图和误差计算
+x = np.linspace(0.0, 2.0 * np.pi, 2000)
+y_true = np.sin(x)
+
+# 二次拉格朗日插值
+y_quadratic = quadratic_interpolation(x_nodes, y_nodes, x)
+error_quadratic = np.abs(y_quadratic - y_true)
+
+# 二次拉格朗日插值曲线
+plt.figure(figsize=(10, 6))
+plt.scatter(x_nodes, y_nodes, s=60, label="Nine data points", zorder=3)
+plt.plot(x, y_quadratic, linewidth=2, label="Degree-2 Lagrange interpolation")
+plt.plot(x, y_true, "--", linewidth=2, label="True function: sin(x)")
+plt.xlabel("x")
+plt.ylabel("f(x)")
+plt.title("Local Quadratic Lagrange Interpolation")
+plt.grid(alpha=0.25)
+plt.legend()
+plt.tight_layout()
+plt.savefig("Figures/quadratic_lagrange.png", dpi=300, bbox_inches="tight")
+plt.show()
+
+# 二次拉格朗日插值误差
+plt.figure(figsize=(10, 6))
+plt.plot(x, error_quadratic, "--", linewidth=2, label="Absolute error")
+plt.xlabel("x")
+plt.ylabel(r"$|P_2(x)-\sin(x)|$")
+plt.title("Error of Local Quadratic Lagrange Interpolation")
+plt.grid(alpha=0.25)
+plt.legend()
+plt.tight_layout()
+plt.savefig("Figures/quadratic_lagrange_error.png", dpi=300, bbox_inches="tight")
+plt.show()</code></pre>
+          </div>
+        </div>
+
+        <p>The resulting plot is shown below:</p>
         <div class="figure-grid">
           <img src="Figures/quadratic_lagrange.png" alt="Quadratic Lagrange interpolation curve">
           <img src="Figures/quadratic_lagrange_error.png" alt="Quadratic Lagrange interpolation error">
         </div>
+        <p>The corresponding figure is stored in <a href="Figures/quadratic_lagrange.png">Figures/quadratic_lagrange.png</a> and <a href="Figures/quadratic_lagrange_error.png">Figures/quadratic_lagrange_error.png</a>.</p>
 
-        <h3>Global degree-8 Lagrange interpolation</h3>
-        <div class="figure-grid">
-          <img src="Figures/degree8_lagrange.png" alt="Degree-8 global Lagrange interpolation">
-          <img src="Figures/degree8_lagrange_error.png" alt="Degree-8 interpolation error">
+        <h3>Code example: Lagrange interpolation for $\sin(x)$</h3>
+        <p>Here is a simple Python example using Lagrange interpolation on the function $\sin(x)$.</p>
+        <div class="code-block">
+          <button class="code-toggle" type="button" onclick="this.nextElementSibling.classList.toggle('open')">Show code</button>
+          <div class="code-panel">
+            <pre><code>import os
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import lagrange
+
+
+# 如果 Figures 文件夹不存在，则自动创建
+os.makedirs("Figures", exist_ok=True)
+
+# 在区间 [0, 2π] 上构造 9 个等距插值节点
+x_nodes = np.linspace(0.0, 2.0 * np.pi, 9)
+y_nodes = np.sin(x_nodes)
+
+# 构造致密网格，用于绘图和误差计算
+x = np.linspace(0.0, 2.0 * np.pi, 2000)
+y_true = np.sin(x)
+
+# 八次全局拉格朗日插值
+polynomial_degree8 = lagrange(x_nodes, y_nodes)
+y_degree8 = polynomial_degree8(x)
+error_degree8 = np.abs(y_degree8 - y_true)
+
+# 八次全局拉格朗日插值曲线
+plt.figure(figsize=(10, 6))
+plt.scatter(x_nodes, y_nodes, s=60, label="Nine data points", zorder=3)
+plt.plot(x, y_degree8, linewidth=2, label="Degree-8 Lagrange interpolation")
+plt.plot(x, y_true, "--", linewidth=2, label="True function: sin(x)")
+plt.xlabel("x")
+plt.ylabel("f(x)")
+plt.title("Degree-8 Global Lagrange Interpolation")
+plt.grid(alpha=0.25)
+plt.legend()
+plt.tight_layout()
+plt.savefig("Figures/degree8_lagrange.png", dpi=300, bbox_inches="tight")
+plt.show()
+
+# 八次全局拉格朗日插值误差
+plt.figure(figsize=(10, 6))
+plt.plot(x, error_degree8, "--", linewidth=2, label="Absolute error")
+plt.xlabel("x")
+plt.ylabel(r"$|P_8(x)-\sin(x)|$")
+plt.title("Error of Degree-8 Global Lagrange Interpolation")
+plt.grid(alpha=0.25)
+plt.legend()
+plt.tight_layout()
+plt.savefig("Figures/degree8_lagrange_error.png", dpi=300, bbox_inches="tight")
+plt.show()</code></pre>
+          </div>
         </div>
 
-        <p class="note">The notebook <a href="Code/lagrange_interpolation.ipynb">Code/lagrange_interpolation.ipynb</a> compares several approaches.</p>
+        <p>The resulting plot is shown below:</p>
+        <div class="figure-grid">
+          <img src="Figures/degree8_lagrange.png" alt="Degree-8 global Lagrange interpolation">
+          <img src="Figures/degree8_lagrange_error.png" alt="Degree-8 global Lagrange interpolation error">
+        </div>
+        <p>The corresponding figure is stored in <a href="Figures/degree8_lagrange.png">Figures/degree8_lagrange.png</a> and <a href="Figures/degree8_lagrange_error.png">Figures/degree8_lagrange_error.png</a>.</p>
+
+        <p class="note">The notebook <a href="Code/lagrange_interpolation.ipynb">Code/lagrange_interpolation.ipynb</a> also compares several approaches.</p>
         <div class="figure-grid">
           <img src="Figures/lagrange_comparison.png" alt="Comparison of Lagrange interpolation methods">
           <img src="Figures/lagrange_error_comparison.png" alt="Error comparison of Lagrange interpolation methods">
@@ -344,25 +497,33 @@ plt.show()</code></pre>
       </div>
 
       <div class="card" id="newton">
-        <h2>1.2 Newton interpolation</h2>
+        <h2>2.2 Newton interpolation</h2>
         <p>Newton interpolation is another polynomial interpolation method. It expresses the interpolation polynomial in a form based on finite differences, making it convenient for adding new data points incrementally. In general, the Newton form can be written as:</p>
         <div class="equation">
           $$
-          P(x)=a_0+a_1(x-x_0)+a_2(x-x_0)(x-x_1)+\cdots+a_n(x-x_0)(x-x_1)\cdots(x-x_{n-1})
+          P(x)=a_0+a_1(x-x_0)+a_2(x-x_0)(x-x_1)+\cdots+a_n(x-x_0)(x-x_1)\cdots(x-x_{n-1}),
+          $$
+        </div>
+        <p>where the coefficients $a_k$ are determined by divided differences:</p>
+        <div class="equation">
+          $$
+          a_0 = f(x_0),
           $$
         </div>
         <div class="equation">
           $$
-          a_0=f(x_0), \qquad a_1=\frac{f(x_1)-f(x_0)}{x_1-x_0},
+          a_1 = \frac{f(x_1)-f(x_0)}{x_1-x_0},
           $$
         </div>
         <div class="equation">
           $$
-          a_2=\frac{\frac{f(x_2)-f(x_1)}{x_2-x_1}-\frac{f(x_1)-f(x_0)}{x_1-x_0}}{x_2-x_0}
+          a_2 = \frac{\frac{f(x_2)-f(x_1)}{x_2-x_1}-\frac{f(x_1)-f(x_0)}{x_1-x_0}}{x_2-x_0},
           $$
         </div>
-        <p>where the coefficients <em>a_k</em> are determined by divided differences. This formulation is especially useful because when a new data point is added, only the new divided differences are needed, so the interpolation polynomial can be updated efficiently.</p>
+        <p>and similarly for higher orders. This formulation is especially useful because when a new data point is added, only the new divided differences are needed, so the interpolation polynomial can be updated efficiently.</p>
 
+        <h3>Code example: Newton interpolation for $\sin(x)$</h3>
+        <p>Here is a simple Python example using Newton interpolation on the function $\sin(x)$.</p>
         <div class="code-block">
           <button class="code-toggle" type="button" onclick="this.nextElementSibling.classList.toggle('open')">Show code</button>
           <div class="code-panel">
@@ -389,12 +550,9 @@ def divided_difference(x_nodes, y_nodes):
     y_nodes = np.asarray(y_nodes, dtype=float)
 
     n = len(x_nodes)
-
-    # 差商表第一列为函数值
     table = np.zeros((n, n), dtype=float)
     table[:, 0] = y_nodes
 
-    # 逐阶计算差商
     for j in range(1, n):
         for i in range(n - j):
             table[i, j] = (
@@ -403,177 +561,87 @@ def divided_difference(x_nodes, y_nodes):
                 x_nodes[i + j] - x_nodes[i]
             )
 
-    # 牛顿插值系数位于差商表第一行
     coefficients = table[0, :].copy()
-
     return table, coefficients
 
 
 def newton_interpolation(x_nodes, coefficients, x):
-    """
-    根据牛顿差商系数计算插值多项式。
-
-    采用嵌套乘法形式计算，避免直接展开高次多项式。
-    """
-
     x_nodes = np.asarray(x_nodes, dtype=float)
     coefficients = np.asarray(coefficients, dtype=float)
     x = np.asarray(x, dtype=float)
 
-    # 从最高阶系数开始进行嵌套计算
     y = np.full_like(x, coefficients[-1], dtype=float)
-
     for k in range(len(coefficients) - 2, -1, -1):
         y = coefficients[k] + (x - x_nodes[k]) * y
 
     return y
 
 
-# 在区间 [0, 2π] 上构造 9 个等距插值节点
-x_nodes = np.linspace(
-    0.0,
-    2.0 * np.pi,
-    9
-)
-
-# 节点对应的函数值
+x_nodes = np.linspace(0.0, 2.0 * np.pi, 9)
 y_nodes = np.sin(x_nodes)
-
-
-# 构造致密网格，用于绘图和误差计算
-x = np.linspace(
-    0.0,
-    2.0 * np.pi,
-    2000
-)
-
-# 原函数真值
+x = np.linspace(0.0, 2.0 * np.pi, 2000)
 y_true = np.sin(x)
 
-
-# 计算差商表和牛顿插值系数
-difference_table, coefficients = divided_difference(
-    x_nodes,
-    y_nodes
-)
-
-# 计算牛顿插值结果
-y_newton = newton_interpolation(
-    x_nodes,
-    coefficients,
-    x
-)
-
-# 计算绝对误差
-error_newton = np.abs(
-    y_newton - y_true
-)
-
-
-print("牛顿插值系数：")
-for i, value in enumerate(coefficients):
-    print(f"a[{i}] = {value:.12e}")
-
-print()
-print(
-    "牛顿插值最大绝对误差：",
-    np.max(error_newton)
-)
-
+difference_table, coefficients = divided_difference(x_nodes, y_nodes)
+y_newton = newton_interpolation(x_nodes, coefficients, x)
+error_newton = np.abs(y_newton - y_true)
 
 plt.figure(figsize=(10, 6))
-plt.scatter(
-    x_nodes,
-    y_nodes,
-    s=60,
-    label="Nine data points",
-    zorder=3
-)
-
-plt.plot(
-    x,
-    y_newton,
-    linewidth=2,
-    label="Newton interpolation"
-)
-
-plt.plot(
-    x,
-    y_true,
-    "--",
-    linewidth=2,
-    label="True function: sin(x)"
-)
-
+plt.scatter(x_nodes, y_nodes, s=60, label="Nine data points", zorder=3)
+plt.plot(x, y_newton, linewidth=2, label="Newton interpolation")
+plt.plot(x, y_true, "--", linewidth=2, label="True function: sin(x)")
 plt.xlabel("x")
 plt.ylabel("f(x)")
 plt.title("Newton Interpolation of sin(x)")
 plt.grid(alpha=0.25)
 plt.legend()
 plt.tight_layout()
-plt.savefig(
-    "Figures/newton_interpolation.png",
-    dpi=300,
-    bbox_inches="tight"
-)
+plt.savefig("Figures/newton_interpolation.png", dpi=300, bbox_inches="tight")
 plt.show()
 
-
-# ==========================================================
-# 牛顿插值误差
-# ==========================================================
-
 plt.figure(figsize=(10, 6))
-
-plt.plot(
-    x,
-    error_newton,
-    "--",
-    linewidth=2,
-    label="Absolute error"
-)
-
+plt.plot(x, error_newton, "--", linewidth=2, label="Absolute error")
 plt.xlabel("x")
 plt.ylabel(r"$|P_8(x)-\sin(x)|$")
 plt.title("Absolute Error of Newton Interpolation")
 plt.grid(alpha=0.25)
 plt.legend()
 plt.tight_layout()
-
-plt.savefig(
-    "Figures/newton_interpolation_error.png",
-    dpi=300,
-    bbox_inches="tight"
-)
+plt.savefig("Figures/newton_interpolation_error.png", dpi=300, bbox_inches="tight")
 plt.show()</code></pre>
           </div>
         </div>
+
         <div class="figure-grid">
           <img src="Figures/newton_interpolation.png" alt="Newton interpolation curve">
           <img src="Figures/newton_interpolation_error.png" alt="Newton interpolation error">
         </div>
+        <p>The corresponding figure is stored in <a href="Figures/newton_interpolation.png">Figures/newton_interpolation.png</a> and <a href="Figures/newton_interpolation_error.png">Figures/newton_interpolation_error.png</a>.</p>
       </div>
 
       <div class="card" id="spline">
-        <h2>1.3 Cubic spline interpolation</h2>
-        <p>Cubic spline interpolation is a piecewise polynomial method in which the interval between neighboring data points is represented by a cubic polynomial. On each subinterval <em>[x_i, x_{i+1}]</em>, one writes</p>
+        <h2>2.3 Cubic spline interpolation</h2>
+        <p>Cubic spline interpolation is a piecewise polynomial method in which the interval between neighboring data points is represented by a cubic polynomial. On each subinterval $[x_i,x_{i+1}]$, one writes</p>
         <div class="equation">
           $$
-          S_i(x)=a_i+b_i(x-x_i)+c_i(x-x_i)^2+d_i(x-x_i)^3
+          S_i(x)=a_i+b_i(x-x_i)+c_i(x-x_i)^2+d_i(x-x_i)^3,
+          $$
+        </div>
+        <p>where $a_i,b_i,c_i,d_i$ are coefficients determined by the interpolation conditions. The spline is constructed so that the function values, first derivatives, and second derivatives are continuous at the knots:</p>
+        <div class="equation">
+          $$
+          S_i(x_i)=f(x_i), \qquad S_{i+1}(x_{i+1})=f(x_{i+1}),
           $$
         </div>
         <div class="equation">
           $$
-          S_i(x_i)=f(x_i), \qquad S_{i+1}(x_{i+1})=f(x_{i+1})
+          S_i'(x_{i+1})=S_{i+1}'(x_{i+1}), \qquad S_i''(x_{i+1})=S_{i+1}''(x_{i+1}).
           $$
         </div>
-        <div class="equation">
-          $$
-          S_i'(x_{i+1})=S_{i+1}'(x_{i+1}), \qquad S_i''(x_{i+1})=S_{i+1}''(x_{i+1})
-          $$
-        </div>
-        <p>The spline is constructed so that the function values, first derivatives, and second derivatives are continuous at the knots. This produces a smooth curve and avoids the large oscillations that may appear in high-degree polynomial interpolation. Because of its smoothness and stability, cubic spline interpolation is widely used in engineering, computer graphics, and scientific data fitting. It is often preferred when a visually smooth and physically reasonable curve is needed.</p>
+        <p>This produces a smooth curve and avoids the large oscillations that may appear in high-degree polynomial interpolation. Because of its smoothness and stability, cubic spline interpolation is widely used in engineering, computer graphics, and scientific data fitting. It is often preferred when a visually smooth and physically reasonable curve is needed.</p>
 
+        <h3>Code example: Cubic spline interpolation for $\sin(x)$</h3>
+        <p>Here is a simple Python example using Cubic spline interpolation on the function $\sin(x)$.</p>
         <div class="code-block">
           <button class="code-toggle" type="button" onclick="this.nextElementSibling.classList.toggle('open')">Show code</button>
           <div class="code-panel">
@@ -587,135 +655,297 @@ from scipy.interpolate import CubicSpline
 # 如果 Figures 文件夹不存在，则自动创建
 os.makedirs("Figures", exist_ok=True)
 
-# 在区间 [0, 2π] 上构造 9 个等距插值节点
-x_nodes = np.linspace(
-    0.0,
-    2.0 * np.pi,
-    9
-)
-
-# 节点对应的函数值
+x_nodes = np.linspace(0.0, 2.0 * np.pi, 9)
 y_nodes = np.sin(x_nodes)
-
-
-# 构造致密网格，用于绘图和误差计算
-x = np.linspace(
-    0.0,
-    2.0 * np.pi,
-    2000
-)
-
-# 原函数真值
+x = np.linspace(0.0, 2.0 * np.pi, 2000)
 y_true = np.sin(x)
 
-
-# 构造自然三次样条插值函数
-# bc_type="natural" 表示左右端点的二阶导数为 0
-spline = CubicSpline(
-    x_nodes,
-    y_nodes,
-    bc_type="natural"
-)
-
-# 计算样条插值结果
+spline = CubicSpline(x_nodes, y_nodes, bc_type="natural")
 y_spline = spline(x)
-
-# 计算绝对误差
-error_spline = np.abs(
-    y_spline - y_true
-)
-
-print(
-    "三次样条插值最大绝对误差：",
-    np.max(error_spline)
-)
-
-# ==========================================================
-# 三次样条插值曲线
-# ==========================================================
+error_spline = np.abs(y_spline - y_true)
 
 plt.figure(figsize=(10, 6))
-
-plt.scatter(
-    x_nodes,
-    y_nodes,
-    s=60,
-    label="Nine data points",
-    zorder=3
-)
-
-plt.plot(
-    x,
-    y_spline,
-    linewidth=2,
-    label="Natural cubic spline interpolation"
-)
-
-plt.plot(
-    x,
-    y_true,
-    "--",
-    linewidth=2,
-    label="True function: sin(x)"
-)
-
+plt.scatter(x_nodes, y_nodes, s=60, label="Nine data points", zorder=3)
+plt.plot(x, y_spline, linewidth=2, label="Natural cubic spline interpolation")
+plt.plot(x, y_true, "--", linewidth=2, label="True function: sin(x)")
 plt.xlabel("x")
 plt.ylabel("f(x)")
 plt.title("Natural Cubic Spline Interpolation of sin(x)")
 plt.grid(alpha=0.25)
 plt.legend()
 plt.tight_layout()
-
-plt.savefig(
-    "Figures/cubic_spline_interpolation.png",
-    dpi=300,
-    bbox_inches="tight"
-)
-
+plt.savefig("Figures/cubic_spline_interpolation.png", dpi=300, bbox_inches="tight")
 plt.show()
 
-
-# ==========================================================
-# 三次样条插值误差
-# ==========================================================
-
 plt.figure(figsize=(10, 6))
-
-plt.plot(
-    x,
-    error_spline,
-    "--",
-    linewidth=2,
-    label="Absolute error"
-)
-
+plt.plot(x, error_spline, "--", linewidth=2, label="Absolute error")
 plt.xlabel("x")
 plt.ylabel(r"$|S(x)-\sin(x)|$")
 plt.title("Absolute Error of Natural Cubic Spline Interpolation")
 plt.grid(alpha=0.25)
 plt.legend()
 plt.tight_layout()
-
-plt.savefig(
-    "Figures/cubic_spline_interpolation_error.png",
-    dpi=300,
-    bbox_inches="tight"
-)
-
+plt.savefig("Figures/cubic_spline_interpolation_error.png", dpi=300, bbox_inches="tight")
 plt.show()</code></pre>
           </div>
         </div>
+
         <div class="figure-grid">
           <img src="Figures/cubic_spline_interpolation.png" alt="Cubic spline interpolation curve">
           <img src="Figures/cubic_spline_interpolation_error.png" alt="Cubic spline interpolation error">
         </div>
+        <p>The corresponding figure is stored in <a href="Figures/cubic_spline_interpolation.png">Figures/cubic_spline_interpolation.png</a> and <a href="Figures/cubic_spline_interpolation_error.png">Figures/cubic_spline_interpolation_error.png</a>.</p>
       </div>
 
       <div class="card" id="runge">
-        <h2>1.4 Runge's phenomenon</h2>
-        <p>A classic warning about high-degree polynomial interpolation is Runge's phenomenon. If we interpolate the function <em>f(x)=1/(1+x^2)</em>, <em>x ∈ [-5,5]</em>, using many equally spaced nodes, the interpolating polynomial may oscillate strongly near the endpoints. This shows that increasing the degree of the polynomial does not always improve the approximation.</p>
-        <p>The notebook <a href="Code/runge_interpolation_comparison.ipynb">Code/runge_interpolation_comparison.ipynb</a> compares several approaches and illustrates why piecewise and spline-based methods are often more stable.</p>
+        <h2>2.4 Runge's phenomenon</h2>
+        <p>A classic warning about high-degree polynomial interpolation is Runge's phenomenon. If we interpolate the function</p>
+        <div class="equation">
+          $$
+          f(x)=\frac{1}{1+x^2},\qquad x\in[-5,5],
+          $$
+        </div>
+        <p>using many equally spaced nodes, the interpolating polynomial may oscillate strongly near the endpoints. This shows that increasing the degree of the polynomial does not always improve the approximation.</p>
+        <p>The notebook <a href="Code/runge_interpolation_comparison.ipynb">Code/runge_interpolation_comparison.ipynb</a> compares several approaches:</p>
+        <p>The resulting comparison figure is stored in <a href="Figures/Runge_comparison.png">Figures/Runge_comparison.png</a>.</p>
         <img src="Figures/Runge_comparison.png" alt="Runge phenomenon comparison">
+        <p>This example illustrates why piecewise and spline-based methods are often more stable than one single high-degree polynomial.</p>
+      </div>
+
+      <div class="card" id="curve-fitting">
+        <h2>3. Why curve fitting</h2>
+        <p>Curve fitting is the process of choosing a mathematical model and its parameters so that the model describes observed data as well as possible. In physics and experimental science, measurements are rarely exact; they contain noise, limited precision, and possible systematic effects. Curve fitting helps us recover the underlying trend and estimate the parameters of a physical model.</p>
+        <p>Curve fitting is important because it allows us to turn raw experimental data into useful quantitative information. Instead of merely connecting points, we aim to infer a model that can explain the data, predict new values, and reveal the relationships between variables.</p>
+      </div>
+
+      <div class="card" id="least-squares">
+        <h2>3.1 Least squares</h2>
+        <p>Least squares is one of the most common methods for fitting a model to data. It chooses the parameters that minimize the sum of squared residuals. Weighted least squares generalizes ordinary least squares by incorporating the uncertainty of each measurement. It chooses the parameters that minimize the weighted sum of squared residuals,</p>
+        <div class="equation">
+          $$
+          \chi^2(\theta) = \sum_i \left[\frac{y_i - f(x_i;\theta)}{\sigma_i}\right]^2,
+          $$
+        </div>
+        <p>where $y_i$ are observed values, $f(x_i;\theta)$ are model predictions, $\sigma_i$ are the standard uncertainties of the measurements, and $\theta$ denotes the unknown parameters. This formulation is preferable when different data points have different uncertainties because it gives less influence to noisy or low-quality measurements.</p>
+        <p>Equivalently, in matrix form,</p>
+        <div class="equation">
+          $$
+          \chi^2 = (\mathbf{y} - \mathbf{f}(\theta))^T \mathbf{W} (\mathbf{y} - \mathbf{f}(\theta)),
+          $$
+        </div>
+        <p>with $\mathbf{W} = \mathrm{diag}(1/\sigma_1^2, \ldots, 1/\sigma_n^2)$.</p>
+        <p>The example below follows the same line-fitting idea described in the emcee tutorial: fit a straight line to noisy measurements with known uncertainties and estimate the slope and intercept by minimizing the weighted squared residuals.</p>
+
+        <h3>Code example: least squares fit of a straight line</h3>
+        <p>Here is a simple Python example using least squares to fit a line to noisy data.</p>
+        <div class="code-block">
+          <button class="code-toggle" type="button" onclick="this.nextElementSibling.classList.toggle('open')">Show code</button>
+          <div class="code-panel">
+            <pre><code>import os
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+os.makedirs("Figures", exist_ok=True)
+
+np.random.seed(123)
+
+m_true = -0.9594
+b_true = 4.294
+f_true = 0.534
+
+N = 50
+x = np.sort(10 * np.random.rand(N))
+yerr = 0.1 + 0.5 * np.random.rand(N)
+y = m_true * x + b_true
+y += np.abs(f_true * y) * np.random.randn(N)
+y += yerr * np.random.randn(N)
+
+x0 = np.linspace(0, 10, 500)
+A = np.vander(x, 2)
+C = np.diag(yerr * yerr)
+ATA = np.dot(A.T, A / (yerr**2)[:, None])
+cov = np.linalg.inv(ATA)
+w = np.linalg.solve(ATA, np.dot(A.T, y / yerr**2))
+
+plt.figure(figsize=(10, 5))
+plt.errorbar(x, y, yerr=yerr, fmt=".k", capsize=0, label="data")
+plt.plot(x0, m_true * x0 + b_true, "k", alpha=0.3, lw=3, label="truth")
+plt.plot(x0, np.dot(np.vander(x0, 2), w), "--k", label="LS")
+plt.legend(fontsize=14)
+plt.xlim(0, 10)
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Weighted Least Squares Fit of a Straight Line")
+plt.grid(alpha=0.25)
+plt.tight_layout()
+plt.savefig("Figures/least_squares_fit.png", dpi=300, bbox_inches="tight")
+
+plt.figure(figsize=(10, 4))
+residuals = y - np.dot(np.vander(x, 2), w)
+plt.errorbar(x, residuals, yerr=yerr, fmt="o", color="tab:red", ecolor="tab:gray", alpha=0.8)
+plt.axhline(0.0, color="black", linewidth=1.5, linestyle="--")
+plt.xlabel("x")
+plt.ylabel("Residual")
+plt.title("Residuals of the Weighted Least Squares Fit")
+plt.grid(alpha=0.25)
+plt.tight_layout()
+plt.savefig("Figures/least_squares_residuals.png", dpi=300, bbox_inches="tight")
+plt.show()</code></pre>
+          </div>
+        </div>
+
+        <p>The resulting plots are shown below:</p>
+        <div class="figure-grid">
+          <img src="Figures/least_squares_fit.png" alt="Least squares fit of a line">
+          <img src="Figures/least_squares_residuals.png" alt="Residuals of the least squares fit">
+        </div>
+        <p>The corresponding figures are stored in <a href="Figures/least_squares_fit.png">Figures/least_squares_fit.png</a> and <a href="Figures/least_squares_residuals.png">Figures/least_squares_residuals.png</a>.</p>
+        <p>The notebook <a href="Code/least_square.ipynb">Code/least_square.ipynb</a> provides the same example in executable notebook form.</p>
+      </div>
+
+      <div class="card" id="maximum-likelihood">
+        <h2>3.2 Maximum likelihood</h2>
+        <p>Maximum likelihood estimation treats the data as random outcomes generated by a probability model. The parameters are chosen to maximize the likelihood of observing the data that were actually measured. In many cases, if the errors are assumed to be Gaussian, maximum likelihood leads to the same optimization problem as least squares, up to constant factors.</p>
+        <p>The likelihood function is written as</p>
+        <div class="equation">
+          $$
+          \mathcal{L}(\theta) = p(D \mid \theta),
+          $$
+        </div>
+        <p>and the maximum-likelihood estimate is obtained by finding</p>
+        <div class="equation">
+          $$
+          \hat{\theta}_{\mathrm{MLE}} = \arg\max_{\theta} \mathcal{L}(\theta).
+          $$
+        </div>
+        <p>The following example uses the same noisy line-fitting problem but estimates the posterior distribution with emcee, following the standard approach in the emcee tutorial.</p>
+
+        <h3>Code example: maximum likelihood fit using emcee</h3>
+        <p>Here is a simple Python example using maximum likelihood and MCMC to fit a line to noisy data.</p>
+        <div class="code-block">
+          <button class="code-toggle" type="button" onclick="this.nextElementSibling.classList.toggle('open')">Show code</button>
+          <div class="code-panel">
+            <pre><code>import os
+
+import numpy as np
+import matplotlib.pyplot as plt
+import emcee
+import corner
+from scipy.optimize import minimize
+
+m_true = -0.9594
+b_true = 4.294
+f_true = 0.534
+
+N = 50
+x = np.sort(10 * np.random.rand(N))
+yerr = 0.1 + 0.5 * np.random.rand(N)
+y = m_true * x + b_true
+y += np.abs(f_true * y) * np.random.randn(N)
+y += yerr * np.random.randn(N)
+
+
+def log_likelihood(theta, x, y, yerr):
+    m, b = theta
+    model = m * x + b
+    return -0.5 * np.sum(((y - model) / yerr) ** 2 + np.log(2.0 * np.pi * yerr ** 2))
+
+
+def log_prior(theta):
+    m, b = theta
+    if -5.0 < m < 0.5 and 0.0 < b < 10.0:
+        return 0.0
+    return -np.inf
+
+
+def log_probability(theta, x, y, yerr):
+    lp = log_prior(theta)
+    if not np.isfinite(lp):
+        return -np.inf
+    return lp + log_likelihood(theta, x, y, yerr)
+
+nll = lambda *args: -log_likelihood(*args)
+initial = np.array([m_true, b_true]) + 0.1 * rng.normal(size=2)
+soln = minimize(nll, initial, args=(x, y, yerr))
+m_ml, b_ml = soln.x
+
+ndim = 2
+nwalkers = 32
+nsteps = 3000
+initial = np.array([m_ml, b_ml]) + 1e-4 * rng.normal(size=(nwalkers, ndim))
+
+sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, args=(x, y, yerr))
+sampler.run_mcmc(initial, nsteps, progress=False)
+
+samples = sampler.get_chain(discard=100, thin=15, flat=True)
+m_samples = samples[:, 0]
+b_samples = samples[:, 1]
+
+fig = corner.corner(samples, labels=[r"$m$", r"$b$"], truths=[m_true, b_true], quantiles=[0.16, 0.5, 0.84], show_titles=True)
+fig.savefig("Figures/maximum_likelihood_corner.png", dpi=300, bbox_inches="tight")
+
+plt.figure(figsize=(10, 5))
+plt.errorbar(x, y, yerr=yerr, fmt="o", color="tab:blue", ecolor="tab:gray", alpha=0.8, label="Noisy data")
+plt.plot(true_x, m_true * true_x + b_true, "--", color="black", linewidth=2, label="True model")
+
+for m, b in samples[np.random.choice(len(samples), 200, replace=False)]:
+    plt.plot(true_x, m * true_x + b, color="tab:orange", alpha=0.05)
+
+plt.plot(true_x, np.median(m_samples) * true_x + np.median(b_samples), color="tab:orange", linewidth=2,
+         label=f"Posterior median: y = {np.median(m_samples):.3f}x + {np.median(b_samples):.3f}")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Maximum Likelihood + MCMC Fit of a Line")
+plt.grid(alpha=0.25)
+plt.legend()
+plt.tight_layout()
+plt.savefig("Figures/maximum_likelihood_fit.png", dpi=300, bbox_inches="tight")
+
+plt.figure(figsize=(10, 4))
+residuals = y - (np.median(m_samples) * x + np.median(b_samples))
+plt.errorbar(x, residuals, yerr=yerr, fmt="o", color="tab:red", ecolor="tab:gray", alpha=0.8)
+plt.axhline(0.0, color="black", linewidth=1.5, linestyle="--")
+plt.xlabel("x")
+plt.ylabel("Residual")
+plt.title("Residuals of the Maximum-Likelihood / MCMC Fit")
+plt.grid(alpha=0.25)
+plt.tight_layout()
+plt.savefig("Figures/maximum_likelihood_residuals.png", dpi=300, bbox_inches="tight")
+plt.show()</code></pre>
+          </div>
+        </div>
+
+        <p>The resulting plots are shown below:</p>
+        <div class="figure-grid">
+          <img src="Figures/maximum_likelihood_fit.png" alt="Maximum-likelihood fit of a line">
+          <img src="Figures/maximum_likelihood_residuals.png" alt="Residuals of the maximum-likelihood fit">
+        </div>
+        <img src="Figures/maximum_likelihood_corner.png" alt="Corner plot for maximum-likelihood fit">
+        <p>The corresponding figures are stored in <a href="Figures/maximum_likelihood_fit.png">Figures/maximum_likelihood_fit.png</a> and <a href="Figures/maximum_likelihood_residuals.png">Figures/maximum_likelihood_residuals.png</a>.</p>
+        <p>The notebook <a href="Code/maximum_likelihood.ipynb">Code/maximum_likelihood.ipynb</a> provides the same example in executable notebook form.</p>
+      </div>
+
+      <div class="card" id="fft">
+        <h2>4. Why FFT</h2>
+        <p>Fourier analysis is one of the most powerful tools in computational physics because many physical phenomena are naturally described in frequency space. Signals, oscillations, and wave patterns can be more easily analyzed by decomposing them into sinusoidal components. In this part of the lecture, we introduce the discrete Fourier transform and the fast Fourier transform, which are essential for spectral analysis, filtering, and numerical simulations.</p>
+      </div>
+
+      <div class="card" id="dft">
+        <h2>4.1 Discrete Fourier transform (DFT)</h2>
+        <p>The discrete Fourier transform converts a sequence of sampled data values into a set of frequency-domain coefficients. For a signal $x_0,x_1,\dots,x_{N-1}$, the DFT is defined as</p>
+        <div class="equation">
+          $$
+          X_k = \sum_{n=0}^{N-1} x_n e^{-2\pi i kn / N}, \qquad k=0,1,\dots,N-1.
+          $$
+        </div>
+        <p>This representation shows how the original data can be expressed as a superposition of harmonic components with different frequencies. In computational physics, the DFT is widely used in spectral analysis, solving partial differential equations, and studying vibrations, waves, and periodic phenomena.</p>
+      </div>
+
+      <div class="card" id="fft-2">
+        <h2>4.2 Fast Fourier Transform (FFT)</h2>
+        <p>The fast Fourier transform is an efficient algorithm for computing the DFT. Instead of requiring $O(N^2)$ operations for a length-$N$ sequence, the FFT reduces the computational cost to approximately $O(N\log N)$. This dramatic improvement makes large-scale spectral analysis practical in scientific computing and engineering.</p>
+        <p>The FFT is used in signal processing, image analysis, time-series analysis, and many simulation techniques in physics. It allows us to move quickly between the time domain and frequency domain, making it possible to identify dominant frequencies, filter noise, and interpret oscillatory behavior.</p>
       </div>
     </main>
   </div>
