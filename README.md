@@ -681,53 +681,63 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
+import numpy as np
+import matplotlib.pyplot as plt
 
-# 如果 Figures 文件夹不存在，则自动创建
 os.makedirs("Figures", exist_ok=True)
 
-# 生成模拟数据：y = 0.8 x + 3.0 + noise
-rng = np.random.default_rng(42)
-x = np.linspace(0.0, 10.0, 50)
-m_true = 0.8
-b_true = 3.0
-y_true = m_true * x + b_true
-y = y_true + rng.normal(0.0, 0.5, size=x.size)
+np.random.seed(123)
 
-# 最小二乘拟合一条直线
-coefficients = np.polyfit(x, y, 1)
-m_fit, b_fit = coefficients
-y_fit = m_fit * x + b_fit
-residuals = y - y_fit
+# Choose the "true" parameters.
+m_true = -0.9594
+b_true = 4.294
+f_true = 0.534
 
-print(f"Least-squares slope: m = {m_fit:.6f}")
-print(f"Least-squares intercept: b = {b_fit:.6f}")
-print(f"True parameters: m = {m_true:.6f}, b = {b_true:.6f}")
+# Generate some synthetic data from the model.
+N = 50
+x = np.sort(10 * np.random.rand(N))
+yerr = 0.1 + 0.5 * np.random.rand(N)
+y = m_true * x + b_true
+y += np.abs(f_true * y) * np.random.randn(N)
+y += yerr * np.random.randn(N)
 
-# 拟合结果图
+
+x0 = np.linspace(0, 10, 500)
+A = np.vander(x, 2)
+C = np.diag(yerr * yerr)
+ATA = np.dot(A.T, A / (yerr**2)[:, None])
+cov = np.linalg.inv(ATA)
+w = np.linalg.solve(ATA, np.dot(A.T, y / yerr**2))
+
+print("Least-squares estimates:")
+print("m = {0:.3f} ± {1:.3f}".format(w[0], np.sqrt(cov[0, 0])))
+print("b = {0:.3f} ± {1:.3f}".format(w[1], np.sqrt(cov[1, 1])))
+print("True parameters:", m_true, b_true)
+
 plt.figure(figsize=(10, 5))
-plt.scatter(x, y, color="tab:blue", s=30, label="Noisy data")
-plt.plot(x, y_true, "--", color="black", linewidth=2, label="True model")
-plt.plot(x, y_fit, color="tab:orange", linewidth=2,
-         label=f"Least squares fit: y = {m_fit:.3f}x + {b_fit:.3f}")
+plt.errorbar(x, y, yerr=yerr, fmt=".k", capsize=0, label="data")
+plt.plot(x0, m_true * x0 + b_true, "k", alpha=0.3, lw=3, label="truth")
+plt.plot(x0, np.dot(np.vander(x0, 2), w), "--k", label="LS")
+plt.legend(fontsize=14)
+plt.xlim(0, 10)
 plt.xlabel("x")
 plt.ylabel("y")
-plt.title("Least Squares Fit of a Straight Line")
+plt.title("Weighted Least Squares Fit of a Straight Line")
 plt.grid(alpha=0.25)
-plt.legend()
 plt.tight_layout()
 plt.savefig("Figures/least_squares_fit.png", dpi=300, bbox_inches="tight")
-plt.show()
 
-# 残差图
 plt.figure(figsize=(10, 4))
-plt.scatter(x, residuals, color="tab:red", s=30)
+residuals = y - np.dot(np.vander(x, 2), w)
+plt.errorbar(x, residuals, yerr=yerr, fmt="o", color="tab:red", ecolor="tab:gray", alpha=0.8)
 plt.axhline(0.0, color="black", linewidth=1.5, linestyle="--")
 plt.xlabel("x")
 plt.ylabel("Residual")
-plt.title("Residuals of the Least Squares Fit")
+plt.title("Residuals of the Weighted Least Squares Fit")
 plt.grid(alpha=0.25)
 plt.tight_layout()
 plt.savefig("Figures/least_squares_residuals.png", dpi=300, bbox_inches="tight")
+
 plt.show()
 ```
 
@@ -766,97 +776,120 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import emcee
+import corner
+from scipy.optimize import minimize
 
 
-# 如果 Figures 文件夹不存在，则自动创建
-os.makedirs("Figures", exist_ok=True)
 
-# 生成模拟数据：y = 0.8 x + 3.0 + noise
-rng = np.random.default_rng(42)
-x = np.linspace(0.0, 10.0, 50)
-m_true = 0.8
-b_true = 3.0
-y_true = m_true * x + b_true
-y = y_true + rng.normal(0.0, 0.5, size=x.size)
+# Choose the "true" parameters.
+m_true = -0.9594
+b_true = 4.294
+f_true = 0.534
+
+# Generate some synthetic data from the model.
+N = 50
+x = np.sort(10 * np.random.rand(N))
+yerr = 0.1 + 0.5 * np.random.rand(N)
+y = m_true * x + b_true
+y += np.abs(f_true * y) * np.random.randn(N)
+y += yerr * np.random.randn(N)
+
+
+def log_likelihood(theta, x, y, yerr):
+    m, b = theta
+    model = m * x + b
+    return -0.5 * np.sum(((y - model) / yerr) ** 2 + np.log(2.0 * np.pi * yerr ** 2))
 
 
 def log_prior(theta):
-    m, b, log_sigma = theta
-    if -5.0 < m < 5.0 and -10.0 < b < 10.0 and -10.0 < log_sigma < 1.0:
+    m, b = theta
+    if -5.0 < m < 0.5 and 0.0 < b < 10.0:
         return 0.0
     return -np.inf
 
 
-def log_likelihood(theta, x, y):
-    m, b, log_sigma = theta
-    sigma = np.exp(log_sigma)
-    model = m * x + b
-    resid = y - model
-    return -0.5 * np.sum((resid / sigma) ** 2 + np.log(2.0 * np.pi * sigma ** 2))
-
-
-def log_probability(theta, x, y):
+def log_probability(theta, x, y, yerr):
     lp = log_prior(theta)
     if not np.isfinite(lp):
         return -np.inf
-    return lp + log_likelihood(theta, x, y)
+    return lp + log_likelihood(theta, x, y, yerr)
 
 
-ndim = 3
+# Maximum-likelihood estimate from a local minimization
+nll = lambda *args: -log_likelihood(*args)
+initial = np.array([m_true, b_true]) + 0.1 * rng.normal(size=2)
+soln = minimize(nll, initial, args=(x, y, yerr))
+m_ml, b_ml = soln.x
+
+print("Maximum likelihood estimates:")
+print("m = {0:.3f}".format(m_ml))
+print("b = {0:.3f}".format(b_ml))
+
+ndim = 2
 nwalkers = 32
-nsteps = 2000
-initial = np.array([m_true, b_true, np.log(0.5)]) + 1e-3 * rng.normal(size=(nwalkers, ndim))
+nsteps = 3000
+initial = np.array([m_ml, b_ml]) + 1e-4 * rng.normal(size=(nwalkers, ndim))
 
-sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, args=(x, y))
+sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, args=(x, y, yerr))
 sampler.run_mcmc(initial, nsteps, progress=False)
 
-samples = sampler.get_chain(discard=500, thin=15, flat=True)
+samples = sampler.get_chain(discard=100, thin=15, flat=True)
 m_samples = samples[:, 0]
 b_samples = samples[:, 1]
-sigma_samples = np.exp(samples[:, 2])
 
-print("Posterior mean slope:", np.mean(m_samples))
-print("Posterior mean intercept:", np.mean(b_samples))
-print("Posterior mean noise level:", np.mean(sigma_samples))
+m_16, m_50, m_84 = np.percentile(m_samples, [16, 50, 84])
+b_16, b_50, b_84 = np.percentile(b_samples, [16, 50, 84])
+
+print(f"m = {m_50:.4f} +{m_84 - m_50:.4f} / -{m_50 - m_16:.4f}")
+print(f"b = {b_50:.4f} +{b_84 - b_50:.4f} / -{b_50 - b_16:.4f}")
+
+fig = corner.corner(
+    samples,
+    labels=[r"$m$", r"$b$"],
+    truths=[m_true, b_true],
+    quantiles=[0.16, 0.5, 0.84],
+    show_titles=True,
+)
+fig.savefig("Figures/maximum_likelihood_corner.png", dpi=300, bbox_inches="tight")
 
 plt.figure(figsize=(10, 5))
-plt.scatter(x, y, color="tab:blue", s=30, label="Noisy data")
-plt.plot(x, y_true, "--", color="black", linewidth=2, label="True model")
+plt.errorbar(x, y, yerr=yerr, fmt="o", color="tab:blue", ecolor="tab:gray", alpha=0.8, label="Noisy data")
+plt.plot(true_x, m_true * true_x + b_true, "--", color="black", linewidth=2, label="True model")
 
-for m, b, _ in samples[np.random.choice(len(samples), 200, replace=False)]:
-    plt.plot(x, m * x + b, color="tab:orange", alpha=0.05)
+for m, b in samples[np.random.choice(len(samples), 200, replace=False)]:
+    plt.plot(true_x, m * true_x + b, color="tab:orange", alpha=0.05)
 
-m_best, b_best = np.median(m_samples), np.median(b_samples)
-plt.plot(x, m_best * x + b_best, color="tab:orange", linewidth=2,
-         label=f"Posterior median: y = {m_best:.3f}x + {b_best:.3f}")
+plt.plot(true_x, np.median(m_samples) * true_x + np.median(b_samples), color="tab:orange", linewidth=2,
+         label=f"Posterior median: y = {np.median(m_samples):.3f}x + {np.median(b_samples):.3f}")
 plt.xlabel("x")
 plt.ylabel("y")
-plt.title("Maximum Likelihood / MCMC Fit of a Line")
+plt.title("Maximum Likelihood + MCMC Fit of a Line")
 plt.grid(alpha=0.25)
 plt.legend()
 plt.tight_layout()
 plt.savefig("Figures/maximum_likelihood_fit.png", dpi=300, bbox_inches="tight")
-plt.show()
 
 plt.figure(figsize=(10, 4))
-plt.hist(m_samples, bins=30, color="tab:green", alpha=0.8, edgecolor="black")
-plt.axvline(m_true, color="black", linestyle="--", linewidth=1.5, label="True slope")
-plt.xlabel("m")
-plt.ylabel("Count")
-plt.title("Posterior Distribution of the Slope")
+residuals = y - (np.median(m_samples) * x + np.median(b_samples))
+plt.errorbar(x, residuals, yerr=yerr, fmt="o", color="tab:red", ecolor="tab:gray", alpha=0.8)
+plt.axhline(0.0, color="black", linewidth=1.5, linestyle="--")
+plt.xlabel("x")
+plt.ylabel("Residual")
+plt.title("Residuals of the Maximum-Likelihood / MCMC Fit")
 plt.grid(alpha=0.25)
-plt.legend()
 plt.tight_layout()
-plt.savefig("Figures/maximum_likelihood_posterior.png", dpi=300, bbox_inches="tight")
+plt.savefig("Figures/maximum_likelihood_residuals.png", dpi=300, bbox_inches="tight")
+
 plt.show()
 ```
 
 The resulting plots are shown below:
 
 ![](Figures/maximum_likelihood_fit.png)
-![](Figures/maximum_likelihood_posterior.png)
+![](Figures/maximum_likelihood_residuals.png)
+![](Figures/maximum_likelihood_corner.png)
 
-The corresponding figures are stored in [Figures/maximum_likelihood_fit.png](Figures/maximum_likelihood_fit.png) and [Figures/maximum_likelihood_posterior.png](Figures/maximum_likelihood_posterior.png).
+The corresponding figures are stored in [Figures/maximum_likelihood_fit.png](Figures/maximum_likelihood_fit.png) and [Figures/maximum_likelihood_residuals.png](Figures/maximum_likelihood_residuals.png).
 
 The notebook [Code/maximum_likelihood.ipynb](Code/maximum_likelihood.ipynb) provides the same example in executable notebook form.
 
