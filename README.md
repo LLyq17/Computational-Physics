@@ -477,7 +477,7 @@ plt.show()
 The resulting plot is shown below:
 
 ![](Figures/newton_interpolation.png)
-![](Figures/newton_interpolation.png)
+![](Figures/newton_interpolation_error.png)
 The corresponding figure is stored in [Figures/newton_interpolation.png](Figures/newton_interpolation.png). and [Figures/newton_interpolation_error.png](Figures/newton_interpolation_error.png)
 
 
