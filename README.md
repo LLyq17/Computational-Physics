@@ -1,12 +1,17 @@
 # Computational-Physics
-An undergraduate course I taught at Hebei Normal University (see:https://llyq17.github.io/Computational-Physics/README.html)
+An undergraduate course I taught at Hebei Normal University (see: https://llyq17.github.io/Computational-Physics/README.html)
 
-## 1. Introduction and why interpolation
-Interpolation is a numerical technique used to estimate values of a function at points that are not directly given by the data. In scientific computing and experimental physics, measurements are often available only at discrete sample points, while the underlying behavior is continuous. Interpolation provides a practical way to reconstruct a smooth curve between known values, which is useful for data analysis, visualization, and numerical simulation.
+## 1. Introduction
+Computational physics is the use of numerical methods, algorithms, and scientific computing to model, simulate, analyze, and interpret physical systems. It bridges mathematics, computer science, and physics, allowing us to study problems that are difficult or impossible to solve analytically. In practical research, computational physics is used to simulate motion, analyze experimental data, solve differential equations, and extract useful information from large datasets.
+
+This lecture focuses on three core topics: interpolation, curve fitting, and Fourier analysis. They are fundamental tools in data analysis, numerical modeling, and scientific computing, and they appear repeatedly in physics experiments, signal processing, and simulations.
+
+## 2. Why interpolation
+Interpolation is a numerical technique used to estimate the value of a function at points that are not directly given by the data. In scientific computing and experimental physics, measurements are often available only at discrete sample points, while the underlying behavior is continuous. Interpolation provides a practical way to reconstruct a smooth curve between known values, which is useful for data analysis, visualization, and numerical simulation.
 
 Interpolation is especially important because many physical quantities are observed only at selected positions or times. Instead of treating the data as a set of isolated points, we can use interpolation to obtain a reasonable approximation of the function between those points. Compared with direct measurement, interpolation is often more efficient and helps us understand the trend of the data.
 
-## 1.1 Lagrange interpolation
+### 2.1 Lagrange interpolation
 Lagrange interpolation constructs a polynomial that passes through all given data points. For points $(x_0,y_0), (x_1,y_1), \dots, (x_n,y_n)$, the interpolation polynomial is written as a sum of basis polynomials:
 
 $$
@@ -257,7 +262,7 @@ The resulting plot is shown below:
 
 The resulting comparison figure is stored in [Figures/lagrange_comparison.png](Figures/lagrange_comparison.png). and [Figures/lagrange_error_comparison.png](Figures/lagrange_error_comparison.png).
 
-## 1.2 Newton interpolation
+### 2.2 Newton interpolation
 Newton interpolation is another polynomial interpolation method. It expresses the interpolation polynomial in a form based on finite differences, making it convenient for adding new data points incrementally. In general, the Newton form can be written as:
 
 $$
@@ -476,7 +481,7 @@ The resulting plot is shown below:
 The corresponding figure is stored in [Figures/newton_interpolation.png](Figures/newton_interpolation.png). and [Figures/newton_interpolation_error.png](Figures/newton_interpolation_error.png)
 
 
-## 1.3 Cubic spline interpolation
+### 2.3 Cubic spline interpolation
 Cubic spline interpolation is a piecewise polynomial method in which the interval between neighboring data points is represented by a cubic polynomial. On each subinterval $[x_i,x_{i+1}]$, one writes
 
 $$
@@ -633,7 +638,7 @@ The resulting plot is shown below:
 The corresponding figure is stored in [Figures/cubic_spline_interpolation.png](Figures/cubic_spline_interpolation.png). and [Figures/cubic_spline_interpolation_error.png](Figures/cubic_spline_interpolation_error.png)
 
 
-## 1.4 Runge's phenomenon
+### 2.4 Runge's phenomenon
 
 A classic warning about high-degree polynomial interpolation is Runge's phenomenon. If we interpolate the function
 
@@ -650,12 +655,12 @@ The resulting comparison figure is stored in [Figures/Runge_comparison.png](Figu
 This example illustrates why piecewise and spline-based methods are often more stable than one single high-degree polynomial.
 
 
-## 2. Introduction and why curve fitting
+## 3. Why curve fitting
 Curve fitting is the process of choosing a mathematical model and its parameters so that the model describes observed data as well as possible. In physics and experimental science, measurements are rarely exact; they contain noise, limited precision, and possible systematic effects. Curve fitting helps us recover the underlying trend and estimate the parameters of a physical model.
 
 Curve fitting is important because it allows us to turn raw experimental data into useful quantitative information. Instead of merely connecting points, we aim to infer a model that can explain the data, predict new values, and reveal the relationships between variables.
 
-## 2.1 Least squares
+### 3.1 Least squares
 Least squares is one of the most common methods for fitting a model to data. It chooses the parameters that minimize the sum of squared residuals,
 
 $$
@@ -664,7 +669,77 @@ $$
 
 where $y_i$ are observed values, $f(x_i;\theta)$ are model predictions, and $\theta$ denotes the unknown parameters. This method is simple, widely used, and especially convenient when the measurement errors are approximately Gaussian.
 
-## 2.2 Maximum likelihood
+The example below follows the same line-fitting idea described in the emcee tutorial: fit a straight line to noisy measurements and estimate the slope and intercept by minimizing the squared residuals.
+
+### Code example: least squares fit of a straight line
+Here is a simple Python example using least squares to fit a line to noisy data.
+
+```python
+import os
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+# 如果 Figures 文件夹不存在，则自动创建
+os.makedirs("Figures", exist_ok=True)
+
+# 生成模拟数据：y = 0.8 x + 3.0 + noise
+rng = np.random.default_rng(42)
+x = np.linspace(0.0, 10.0, 50)
+m_true = 0.8
+b_true = 3.0
+y_true = m_true * x + b_true
+y = y_true + rng.normal(0.0, 0.5, size=x.size)
+
+# 最小二乘拟合一条直线
+coefficients = np.polyfit(x, y, 1)
+m_fit, b_fit = coefficients
+y_fit = m_fit * x + b_fit
+residuals = y - y_fit
+
+print(f"Least-squares slope: m = {m_fit:.6f}")
+print(f"Least-squares intercept: b = {b_fit:.6f}")
+print(f"True parameters: m = {m_true:.6f}, b = {b_true:.6f}")
+
+# 拟合结果图
+plt.figure(figsize=(10, 5))
+plt.scatter(x, y, color="tab:blue", s=30, label="Noisy data")
+plt.plot(x, y_true, "--", color="black", linewidth=2, label="True model")
+plt.plot(x, y_fit, color="tab:orange", linewidth=2,
+         label=f"Least squares fit: y = {m_fit:.3f}x + {b_fit:.3f}")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Least Squares Fit of a Straight Line")
+plt.grid(alpha=0.25)
+plt.legend()
+plt.tight_layout()
+plt.savefig("Figures/least_squares_fit.png", dpi=300, bbox_inches="tight")
+plt.show()
+
+# 残差图
+plt.figure(figsize=(10, 4))
+plt.scatter(x, residuals, color="tab:red", s=30)
+plt.axhline(0.0, color="black", linewidth=1.5, linestyle="--")
+plt.xlabel("x")
+plt.ylabel("Residual")
+plt.title("Residuals of the Least Squares Fit")
+plt.grid(alpha=0.25)
+plt.tight_layout()
+plt.savefig("Figures/least_squares_residuals.png", dpi=300, bbox_inches="tight")
+plt.show()
+```
+
+The resulting plots are shown below:
+
+![](Figures/least_squares_fit.png)
+![](Figures/least_squares_residuals.png)
+
+The corresponding figures are stored in [Figures/least_squares_fit.png](Figures/least_squares_fit.png) and [Figures/least_squares_residuals.png](Figures/least_squares_residuals.png).
+
+The notebook [Code/least_square.ipynb](Code/least_square.ipynb) provides the same example in executable notebook form.
+
+### 3.2 Maximum likelihood
 Maximum likelihood estimation treats the data as random outcomes generated by a probability model. The parameters are chosen to maximize the likelihood of observing the data that were actually measured. In many cases, if the errors are assumed to be Gaussian, maximum likelihood leads to the same optimization problem as least squares, up to constant factors.
 
 The likelihood function is written as
@@ -679,12 +754,125 @@ $$
 \hat{\theta}_{\mathrm{MLE}} = \arg\max_{\theta} \mathcal{L}(\theta).
 $$
 
-## 2.3 Bayesian analysis
-Bayesian analysis goes a step further by treating model parameters as random variables with prior distributions. Using the likelihood of the data and the prior information, we update to a posterior distribution,
+The following example uses the same noisy line-fitting problem but estimates the posterior distribution with emcee, following the standard approach in the emcee tutorial.
+
+### Code example: maximum likelihood fit using emcee
+Here is a simple Python example using maximum likelihood and MCMC to fit a line to noisy data.
+
+```python
+import os
+
+import numpy as np
+import matplotlib.pyplot as plt
+import emcee
+
+
+# 如果 Figures 文件夹不存在，则自动创建
+os.makedirs("Figures", exist_ok=True)
+
+# 生成模拟数据：y = 0.8 x + 3.0 + noise
+rng = np.random.default_rng(42)
+x = np.linspace(0.0, 10.0, 50)
+m_true = 0.8
+b_true = 3.0
+y_true = m_true * x + b_true
+y = y_true + rng.normal(0.0, 0.5, size=x.size)
+
+
+def log_prior(theta):
+    m, b, log_sigma = theta
+    if -5.0 < m < 5.0 and -10.0 < b < 10.0 and -10.0 < log_sigma < 1.0:
+        return 0.0
+    return -np.inf
+
+
+def log_likelihood(theta, x, y):
+    m, b, log_sigma = theta
+    sigma = np.exp(log_sigma)
+    model = m * x + b
+    resid = y - model
+    return -0.5 * np.sum((resid / sigma) ** 2 + np.log(2.0 * np.pi * sigma ** 2))
+
+
+def log_probability(theta, x, y):
+    lp = log_prior(theta)
+    if not np.isfinite(lp):
+        return -np.inf
+    return lp + log_likelihood(theta, x, y)
+
+
+ndim = 3
+nwalkers = 32
+nsteps = 2000
+initial = np.array([m_true, b_true, np.log(0.5)]) + 1e-3 * rng.normal(size=(nwalkers, ndim))
+
+sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, args=(x, y))
+sampler.run_mcmc(initial, nsteps, progress=False)
+
+samples = sampler.get_chain(discard=500, thin=15, flat=True)
+m_samples = samples[:, 0]
+b_samples = samples[:, 1]
+sigma_samples = np.exp(samples[:, 2])
+
+print("Posterior mean slope:", np.mean(m_samples))
+print("Posterior mean intercept:", np.mean(b_samples))
+print("Posterior mean noise level:", np.mean(sigma_samples))
+
+plt.figure(figsize=(10, 5))
+plt.scatter(x, y, color="tab:blue", s=30, label="Noisy data")
+plt.plot(x, y_true, "--", color="black", linewidth=2, label="True model")
+
+for m, b, _ in samples[np.random.choice(len(samples), 200, replace=False)]:
+    plt.plot(x, m * x + b, color="tab:orange", alpha=0.05)
+
+m_best, b_best = np.median(m_samples), np.median(b_samples)
+plt.plot(x, m_best * x + b_best, color="tab:orange", linewidth=2,
+         label=f"Posterior median: y = {m_best:.3f}x + {b_best:.3f}")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Maximum Likelihood / MCMC Fit of a Line")
+plt.grid(alpha=0.25)
+plt.legend()
+plt.tight_layout()
+plt.savefig("Figures/maximum_likelihood_fit.png", dpi=300, bbox_inches="tight")
+plt.show()
+
+plt.figure(figsize=(10, 4))
+plt.hist(m_samples, bins=30, color="tab:green", alpha=0.8, edgecolor="black")
+plt.axvline(m_true, color="black", linestyle="--", linewidth=1.5, label="True slope")
+plt.xlabel("m")
+plt.ylabel("Count")
+plt.title("Posterior Distribution of the Slope")
+plt.grid(alpha=0.25)
+plt.legend()
+plt.tight_layout()
+plt.savefig("Figures/maximum_likelihood_posterior.png", dpi=300, bbox_inches="tight")
+plt.show()
+```
+
+The resulting plots are shown below:
+
+![](Figures/maximum_likelihood_fit.png)
+![](Figures/maximum_likelihood_posterior.png)
+
+The corresponding figures are stored in [Figures/maximum_likelihood_fit.png](Figures/maximum_likelihood_fit.png) and [Figures/maximum_likelihood_posterior.png](Figures/maximum_likelihood_posterior.png).
+
+The notebook [Code/maximum_likelihood.ipynb](Code/maximum_likelihood.ipynb) provides the same example in executable notebook form.
+
+## 4. Why FFT
+Fourier analysis is one of the most powerful tools in computational physics because many physical phenomena are naturally described in frequency space. Signals, oscillations, and wave patterns can be more easily analyzed by decomposing them into sinusoidal components. In this part of the lecture, we introduce the discrete Fourier transform and the fast Fourier transform, which are essential for spectral analysis, filtering, and numerical simulations.
+
+### 4.1 Discrete Fourier transform (DFT)
+The discrete Fourier transform converts a sequence of sampled data values into a set of frequency-domain coefficients. For a signal $x_0,x_1,\dots,x_{N-1}$, the DFT is defined as
 
 $$
-p(\theta \mid D) \propto p(D \mid \theta)\, p(\theta),
+X_k = \sum_{n=0}^{N-1} x_n e^{-2\pi i kn / N}, \qquad k=0,1,\dots,N-1.
 $$
 
-where $D$ denotes the observed data. This framework provides a principled way to include prior knowledge, estimate uncertainty, and compare different models.
+This representation shows how the original data can be expressed as a superposition of harmonic components with different frequencies. In computational physics, the DFT is widely used in spectral analysis, solving partial differential equations, and studying vibrations, waves, and periodic phenomena.
+
+### 4.2 Fast Fourier Transform (FFT)
+The fast Fourier transform is an efficient algorithm for computing the DFT. Instead of requiring $O(N^2)$ operations for a length-$N$ sequence, the FFT reduces the computational cost to approximately $O(N\log N)$. This dramatic improvement makes large-scale spectral analysis practical in scientific computing and engineering.
+
+The FFT is used in signal processing, image analysis, time-series analysis, and many simulation techniques in physics. It allows us to move quickly between the time domain and frequency domain, making it possible to identify dominant frequencies, filter noise, and interpret oscillatory behavior.
 
