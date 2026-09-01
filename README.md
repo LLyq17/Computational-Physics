@@ -662,15 +662,24 @@ Curve fitting is the process of choosing a mathematical model and its parameters
 Curve fitting is important because it allows us to turn raw experimental data into useful quantitative information. Instead of merely connecting points, we aim to infer a model that can explain the data, predict new values, and reveal the relationships between variables.
 
 ### 3.1 Least squares
-Least squares is one of the most common methods for fitting a model to data. It chooses the parameters that minimize the sum of squared residuals,
+Least squares is one of the most common methods for fitting a model to data. It chooses the parameters that minimize the sum of squared residuals. Weighted least squares generalizes ordinary least squares by incorporating the uncertainty of each measurement. It chooses the parameters that minimize the weighted sum of squared residuals,
 
 $$
-\chi^2 = \sum_i \left[y_i - f(x_i;\theta)\right]^2,
+\chi^2(\theta) = \sum_i \left[\frac{y_i - f(x_i;\theta)}{\sigma_i}\right]^2,
 $$
 
-where $y_i$ are observed values, $f(x_i;\theta)$ are model predictions, and $\theta$ denotes the unknown parameters. This method is simple, widely used, and especially convenient when the measurement errors are approximately Gaussian.
+where $y_i$ are observed values, $f(x_i;\theta)$ are model predictions, $\sigma_i$ are the standard uncertainties of the measurements, and $\theta$ denotes the unknown parameters. This formulation is preferable when different data points have different uncertainties because it gives less influence to noisy or low-quality measurements.
 
-The example below follows the same line-fitting idea described in the emcee tutorial: fit a straight line to noisy measurements and estimate the slope and intercept by minimizing the squared residuals.
+Equivalently, in matrix form,
+
+$$
+\chi^2 = (\mathbf{y} - \mathbf{f}(\theta))^T \mathbf{W} (\mathbf{y} - \mathbf{f}(\theta)),
+$$
+
+with $\mathbf{W} = \mathrm{diag}(1/\sigma_1^2, \ldots, 1/\sigma_n^2)$.
+
+The example below follows the same line-fitting idea described in the emcee tutorial: fit a straight line to noisy measurements with known uncertainties and estimate the slope and intercept by minimizing the weighted squared residuals.
+
 
 ### Code example: least squares fit of a straight line
 Here is a simple Python example using least squares to fit a line to noisy data.
