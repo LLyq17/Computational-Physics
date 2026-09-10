@@ -1,4 +1,12 @@
-<!DOCTYPE hy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Computational Physics Notes</title>
+  <style>
+    :root {
+      color-scheme: light;
       --bg: #f5f7fb;
       --panel: #ffffff;
       --text: #1f2937;
@@ -207,6 +215,7 @@
         <li><a href="#fft">4. Why FFT</a></li>
         <li><a href="#dft">4.1 Discrete Fourier transform (DFT)</a></li>
         <li><a href="#fft-2">4.2 Fast Fourier Transform (FFT)</a></li>
+        <li><a href="#sunspot-cycle">Sunspot Cycle example</a></li>
         <li><a href="index.html">Back to home</a></li>
       </ul>
     </aside>
@@ -939,7 +948,7 @@ plt.show()</code></pre>
         <p>The fast Fourier transform is an efficient algorithm for computing the DFT. Instead of requiring $O(N^2)$ operations for a length-$N$ sequence, the FFT reduces the computational cost to approximately $O(N\log N)$. This dramatic improvement makes large-scale spectral analysis practical in scientific computing and engineering.</p>
         <p>The FFT is used in signal processing, image analysis, time-series analysis, and many simulation techniques in physics. It allows us to move quickly between the time domain and frequency domain, making it possible to identify dominant frequencies, filter noise, and interpret oscillatory behavior.</p>
 
-        <h3>Code example: Sunspot Cycle</h3>
+        <h3 id="sunspot-cycle">Code example: Sunspot Cycle</h3>
         <div class="code-block">
           <button class="code-toggle" type="button" onclick="this.nextElementSibling.classList.toggle('open')">Show code</button>
           <div class="code-panel">
