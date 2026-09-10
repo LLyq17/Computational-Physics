@@ -215,6 +215,7 @@
         <li><a href="#fft">4. Why FFT</a></li>
         <li><a href="#dft">4.1 Discrete Fourier transform (DFT)</a></li>
         <li><a href="#fft-2">4.2 Fast Fourier Transform (FFT)</a></li>
+        <li><a href="#sunspot-cycle">Sunspot Cycle example</a></li>
         <li><a href="index.html">Back to home</a></li>
       </ul>
     </aside>
@@ -946,6 +947,111 @@ plt.show()</code></pre>
         <h2>4.2 Fast Fourier Transform (FFT)</h2>
         <p>The fast Fourier transform is an efficient algorithm for computing the DFT. Instead of requiring $O(N^2)$ operations for a length-$N$ sequence, the FFT reduces the computational cost to approximately $O(N\log N)$. This dramatic improvement makes large-scale spectral analysis practical in scientific computing and engineering.</p>
         <p>The FFT is used in signal processing, image analysis, time-series analysis, and many simulation techniques in physics. It allows us to move quickly between the time domain and frequency domain, making it possible to identify dominant frequencies, filter noise, and interpret oscillatory behavior.</p>
+
+        <h3 id="sunspot-cycle">Code example: Sunspot Cycle</h3>
+        <div class="code-block">
+          <button class="code-toggle" type="button" onclick="this.nextElementSibling.classList.toggle('open')">Show code</button>
+          <div class="code-panel">
+            <pre><code>import numpy as np
+import matplotlib.pyplot as plt
+
+# ============================================================
+# 1. Download sunspot data
+# ============================================================
+!wget -q https://websites.umich.edu/~mejn/cp2/data/sunspots.txt
+
+data = np.loadtxt("sunspots.txt")
+
+month = data[:, 0]
+sunspot = data[:, 1]
+
+# Time in years
+time = month / 12.0
+
+
+# ============================================================
+# 2. FFT of the original data
+#    Peng-style basic treatment: no mean subtraction
+# ============================================================
+N = len(sunspot)
+dt = 1.0 / 12.0                    # year
+
+Y = np.fft.fft(sunspot)
+freq = np.fft.fftfreq(N, d=dt)
+
+# Positive frequencies, excluding f = 0
+mask = freq &gt; 0
+freq_pos = freq[mask]
+Y_pos = Y[mask]
+
+amplitude = np.abs(Y_pos)
+power = np.abs(Y_pos)**2
+
+
+# ============================================================
+# 3. Dominant frequency and period
+# ============================================================
+peak = np.argmax(power)
+
+f_peak = freq_pos[peak]
+T_peak = 1.0 / f_peak
+
+print(f"Dominant frequency = {f_peak:.4f} 1/year")
+print(f"Dominant period    = {T_peak:.2f} years")
+
+
+# ============================================================
+# Plot 1: Sunspot time series
+# ============================================================
+plt.figure(figsize=(9, 4))
+plt.plot(time, sunspot)
+plt.xlabel("Time [year]")
+plt.ylabel("Sunspot Number")
+plt.title("Sunspot Number")
+plt.tight_layout()
+plt.savefig("Figures/times.png", dpi=300)
+plt.show()
+
+
+# ============================================================
+# Plot 2: FFT amplitude spectrum
+# ============================================================
+plt.figure(figsize=(8, 4))
+plt.plot(freq_pos, amplitude)
+plt.xlim(0, 0.5)
+plt.xlabel("Frequency [1/year]")
+plt.ylabel(r"$|Y(f)|$")
+plt.title("FFT Amplitude Spectrum")
+plt.tight_layout()
+plt.savefig("Figures/fft.png", dpi=300)
+plt.show()
+
+
+# ============================================================
+# Plot 3: Power spectrum
+# ============================================================
+plt.figure(figsize=(8, 4))
+plt.plot(freq_pos, power)
+plt.axvline(f_peak, linestyle="--", label=f"T = {T_peak:.1f} years")
+plt.xlim(0, 0.5)
+plt.xlabel("Frequency [1/year]")
+plt.ylabel(r"$|Y(f)|^2$")
+plt.title("Power Spectrum")
+plt.legend()
+plt.tight_layout()
+plt.savefig("Figures/power.png", dpi=300)
+plt.show()</code></pre>
+          </div>
+        </div>
+
+        <p>The resulting plots are shown below:</p>
+        <div class="figure-grid">
+          <img src="Figures/times.png" alt="Sunspot number time series">
+          <img src="Figures/fft.png" alt="FFT amplitude spectrum">
+          <img src="Figures/power.png" alt="Power spectrum">
+        </div>
+        <p>The corresponding figures are stored in <a href="Figures/times.png">Figures/times.png</a>, <a href="Figures/fft.png">Figures/fft.png</a>, and <a href="Figures/power.png">Figures/power.png</a>.</p>
+        <p>The notebook <a href="Code/sunspot_fft.ipynb">Code/sunspot_fft.ipynb</a> provides the same example in executable notebook form.</p>
       </div>
     </main>
   </div>
