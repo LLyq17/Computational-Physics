@@ -919,3 +919,106 @@ The fast Fourier transform is an efficient algorithm for computing the DFT. Inst
 
 The FFT is used in signal processing, image analysis, time-series analysis, and many simulation techniques in physics. It allows us to move quickly between the time domain and frequency domain, making it possible to identify dominant frequencies, filter noise, and interpret oscillatory behavior.
 
+### Code example: Sunspot Cycle
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ============================================================
+# 1. Download sunspot data
+# ============================================================
+!wget -q https://websites.umich.edu/~mejn/cp2/data/sunspots.txt
+
+data = np.loadtxt("sunspots.txt")
+
+month = data[:, 0]
+sunspot = data[:, 1]
+
+# Time in years
+time = month / 12.0
+
+
+# ============================================================
+# 2. FFT of the original data
+#    Peng-style basic treatment: no mean subtraction
+# ============================================================
+N = len(sunspot)
+dt = 1.0 / 12.0                    # year
+
+Y = np.fft.fft(sunspot)
+freq = np.fft.fftfreq(N, d=dt)
+
+# Positive frequencies, excluding f = 0
+mask = freq > 0
+freq_pos = freq[mask]
+Y_pos = Y[mask]
+
+amplitude = np.abs(Y_pos)
+power = np.abs(Y_pos)**2
+
+
+# ============================================================
+# 3. Dominant frequency and period
+# ============================================================
+peak = np.argmax(power)
+
+f_peak = freq_pos[peak]
+T_peak = 1.0 / f_peak
+
+print(f"Dominant frequency = {f_peak:.4f} 1/year")
+print(f"Dominant period    = {T_peak:.2f} years")
+
+
+# ============================================================
+# Plot 1: Sunspot time series
+# ============================================================
+plt.figure(figsize=(9, 4))
+plt.plot(time, sunspot)
+plt.xlabel("Time [year]")
+plt.ylabel("Sunspot Number")
+plt.title("Sunspot Number")
+plt.tight_layout()
+plt.savefig("Figures/times.png", dpi=300)
+plt.show()
+
+
+# ============================================================
+# Plot 2: FFT amplitude spectrum
+# ============================================================
+plt.figure(figsize=(8, 4))
+plt.plot(freq_pos, amplitude)
+plt.xlim(0, 0.5)
+plt.xlabel("Frequency [1/year]")
+plt.ylabel(r"$|Y(f)|$")
+plt.title("FFT Amplitude Spectrum")
+plt.tight_layout()
+plt.savefig("Figures/fft.png", dpi=300)
+plt.show()
+
+
+# ============================================================
+# Plot 3: Power spectrum
+# ============================================================
+plt.figure(figsize=(8, 4))
+plt.plot(freq_pos, power)
+plt.axvline(f_peak, linestyle="--", label=f"T = {T_peak:.1f} years")
+plt.xlim(0, 0.5)
+plt.xlabel("Frequency [1/year]")
+plt.ylabel(r"$|Y(f)|^2$")
+plt.title("Power Spectrum")
+plt.legend()
+plt.tight_layout()
+plt.savefig("Figures/power.png", dpi=300)
+plt.show()
+```
+
+The resulting plots are shown below:
+
+![](Figures/times.png)
+![](Figures/fft.png)
+![](Figures/power.png)
+
+The corresponding figures are stored in [Figures/times.png](Figures/times.png) and [Figures/fft.png](Figures/fft.png).
+
+The notebook [Code/sunspot_fft.ipynb](Code/sunspot_fft.ipynb) provides the same example in executable notebook form.
